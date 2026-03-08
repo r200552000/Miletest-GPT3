@@ -208,3 +208,492 @@
     </div>
   </div>
   <div class="container-custom">
+    
+    <div id="page-calc" class="page-section">
+      <div class="card-box">
+        <div class="tdc-row tdc-mb-3">
+          <div class="tdc-col-6">
+            <label class="switch-group" id="switch-box-birthdayMode" style="background:#fff1f2; border-color:#fecdd3; box-shadow: 2px 2px 0 #fecdd3;">
+              <span class="switch-label text-danger"><svg class="lucide"><use href="#icon-cake"/></svg> 生日月</span>
+              <input class="form-check-input flex-shrink-0" type="checkbox" id="birthdayMode">
+            </label>
+          </div>
+          <div class="tdc-col-6">
+            <label class="switch-group" id="switch-box-flyMode" style="background:#ecfdf5; border-color:#a7f3d0; box-shadow: 2px 2px 0 #a7f3d0;">
+              <span class="switch-label text-success"><svg class="lucide"><use href="#icon-ticket"/></svg> 越飛有哩</span>
+              <input class="form-check-input flex-shrink-0" type="checkbox" id="flyMode">
+            </label>
+          </div>
+        </div>
+        
+        <div class="tdc-mb-3">
+          <label class="form-label text-primary tdc-flex tdc-align-center"><svg class="lucide me-1"><use href="#icon-target"/></svg> 累積目標</label>
+          <select id="redemption-target" class="form-select border-primary" style="background-color: #eff6ff !important; border-width: 2px;">
+            <option value="ALL">🌏 不指定 (所有航司)</option>
+            <option value="AM_BR">🌏 亞萬 / 長榮 (AM / BR)</option>
+            <option value="CI">🌸 中華航空 (CI)</option>
+          </select>
+        </div>
+
+        <div class="tdc-row tdc-mb-1">
+            <div class="tdc-col-5">
+              <label class="form-label">幣別</label>
+              <select id="currency-type" class="form-select" onchange="toggleFxInput(this.value)">
+                <option value="TWD">🇹🇼 台幣</option>
+                <option value="FOREIGN">🌎 外幣</option>
+              </select>
+            </div>
+            <div class="tdc-col-7">
+              <label class="form-label">支付方式</label>
+              <select id="payment" class="form-select">
+                <option value="physical">💳 實體卡</option>
+                <option value="online">🌐 線上/網購</option>
+                <option value="apple_pay">🍎 Apple Pay</option>
+                <option value="line_pay">🟩 LINE Pay</option>
+              </select>
+            </div>
+        </div>
+
+        <div id="fx-input-group" class="mt-2 tdc-mb-2 p-3" style="background: #f0f9ff; border: 2px dashed #bae6fd; border-radius: 16px; display: none;">
+            <div class="tdc-flex tdc-justify-between tdc-align-center tdc-mb-2">
+                <label class="form-label text-primary small tdc-m-0">當下匯率 (牌告匯率)</label>
+                <a href="https://rate.bot.com.tw/xrt?Lang=zh-TW" target="_blank" class="small fw-bold tdc-flex tdc-align-center text-primary-dark"><svg class="lucide me-1" style="width:14px;height:14px;"><use href="#icon-external"/></svg> 台銀牌告匯率</a>
+            </div>
+            <div class="tdc-flex tdc-align-center gap-2 tdc-mb-1">
+                <span class="fw-bold text-secondary" style="white-space: nowrap;">1 外幣 =</span>
+                <div class="input-wrapper tdc-grow-1">
+                    <input type="number" id="fx-rate-input" class="form-control pe-5" placeholder="輸入牌告數字" inputmode="decimal" min="0" step="0.0001" oninput="updateFxFeedback()">
+                    <button class="btn-inline-clear" type="button" onclick="clearInput('fx-rate-input')">⊗</button>
+                </div>
+                <span class="fw-bold text-secondary">TWD</span>
+            </div>
+            <div id="fx-feedback" class="small fw-bold mt-2" style="color: #ef4444; display: none;">
+                💡 實質匯率 (含1.5%)：<span id="fx-real-rate">0</span>
+            </div>
+        </div>
+
+        <div class="tdc-mb-3 mt-3">
+          <label class="form-label" id="amount-label">🇹🇼 消費金額 (TWD)</label>
+          <div class="input-wrapper">
+            <input type="number" id="amount" class="form-control pe-5" placeholder="0" inputmode="decimal" oninput="checkInputStyle(this)">
+            <button class="btn-inline-clear" type="button" onclick="clearInput('amount')">⊗</button>
+          </div>
+          <button class="btn btn-outline-danger btn-sm tdc-w-100 mt-2 rounded-pill fw-bold" onclick="toggleNegative('amount')"><svg class="lucide me-1" style="width:14px;height:14px;"><use href="#icon-refresh"/></svg>退刷 / 修正上限額度</button>
+        </div>
+
+        <div class="tdc-mb-3">
+          <label class="form-label">消費類別 / 備註</label>
+          <select id="category" class="form-select tdc-mb-2" onchange="updateKeywordPlaceholder()">
+            <option value="general">🛍️ 一般消費</option>
+            <option value="dining">🍽️ 餐廳/外送</option>
+            <option value="travel">🏨 旅遊/訂房</option>
+            <option value="flight_ci">🌸 華航官網</option>
+            <option value="flight_cx">🌲 國泰官網</option>
+            <option value="flight_other">✈️ 其他航空</option>
+          </select>
+          <div class="input-wrapper">
+            <input type="text" id="keyword-input" class="form-control pe-5" placeholder="輸入店家關鍵字 (如: 麥當勞, Agoda, JPY, 日本)..." style="font-size:0.9rem;">
+            <button class="btn-inline-clear" type="button" onclick="clearInput('keyword-input')">⊗</button>
+          </div>
+          <div class="small text-muted mt-2 px-1">💡 提示：輸入「日本、JPY」或「歐洲、英國」可自動觸發特定卡片之海外加碼與防護網。</div>
+        </div>
+
+        <button onclick="calculate()" class="btn-action">開始計算 <svg class="lucide ms-2"><use href="#icon-calc"/></svg></button>
+      </div>
+
+      <div id="fx-calc-board" class="tdc-mb-3 p-3 shadow-sm" style="background: #fdf4ff; border: 2px dashed #e879f9; border-radius: 16px; display: none;"></div>
+
+      <div id="result-area" style="display: none;">
+        <div id="cards-container"></div>
+      </div>
+    </div>
+    <div id="page-list" class="page-section" style="display:none;">
+        <div class="tdc-flex tdc-justify-between align-items-end tdc-mb-3 px-1">
+            <h5 class="text-primary mb-0 tdc-flex tdc-align-center"><svg class="lucide me-2"><use href="#icon-list"/></svg>待結算明細</h5>
+            <span class="badge bg-secondary rounded-pill" id="pending-count" style="font-size:0.8rem;">0 筆</span>
+        </div>
+        <div id="transaction-list-container"></div>
+    </div>
+
+    <div id="page-status" class="page-section" style="display:none;">
+      <div class="card-box">
+        <h5 class="tdc-mb-3 text-primary tdc-flex tdc-align-center"><svg class="lucide me-2"><use href="#icon-chart"/></svg>本期總帳</h5>
+        <div id="status-container"></div>
+        <div class="mt-3 tdc-flex gap-2">
+           <button onclick="clearCurrentStats()" class="btn btn-outline-danger tdc-grow-1 font-hand fw-bold rounded-pill">全部重置</button>
+           <button onclick="batchImport()" class="btn btn-success tdc-grow-1 font-hand fw-bold rounded-pill" style="box-shadow: 2px 2px 0 #047857;">一鍵進倉</button>
+        </div>
+      </div>
+      <div class="card-box mt-3" style="background:#fffbeb; border-color:#fde68a;">
+        <h5 class="tdc-mb-3 text-warning tdc-flex tdc-align-center" style="color:#b45309;"><svg class="lucide me-2"><use href="#icon-shield"/></svg>上限小管家</h5>
+        <div id="limits-container"></div>
+      </div>
+    </div>
+    
+    <div id="page-warehouse" class="page-section" style="display:none;">
+        <div class="tdc-flex p-1 tdc-mb-3" style="background: #e2e8f0; border-radius: 50px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+            <button class="tdc-grow-1 btn font-hand fw-bold rounded-pill" id="tab-btn-manage" onclick="switchWarehouseTab('manage')" style="color: #64748b; border:none;">資產管理</button>
+            <button class="tdc-grow-1 btn font-hand fw-bold rounded-pill active" id="tab-btn-planner" onclick="switchWarehouseTab('planner')" style="background: #ffffff; color: var(--primary-dark); box-shadow: 0 2px 8px rgba(0,0,0,0.08); border:none;">兌換試算</button>
+        </div>
+
+        <div id="warehouse-view-manage" style="display:none;">
+            <div class="input-block-card">
+                <div class="input-block-title text-primary"><svg class="lucide me-2"><use href="#icon-plane"/></svg> 板塊 A：存入航空哩程</div>
+                <div class="tdc-mb-2"><input id="native-airline-name" class="form-control" placeholder="航司名稱 (例如: 華航)"></div>
+                <div class="tdc-mb-3"><input id="native-current" type="number" class="form-control" placeholder="持有數量"></div>
+                <button onclick="addNativeAsset()" class="btn btn-outline-primary tdc-w-100 rounded-pill font-hand fw-bold">存入帳戶</button>
+                <div class="small text-muted mt-2 tdc-text-center">💡 系統將主動比對相似名稱並引導歸戶合併</div>
+            </div>
+            
+            <div class="input-block-card" style="border-color: #cbd5e1;">
+                <div class="input-block-title text-secondary"><svg class="lucide me-2"><use href="#icon-box"/></svg> 板塊 B：通用積分資產</div>
+                <div class="tdc-row tdc-mb-2">
+                    <div class="tdc-col-7"><input id="raw-point-name" class="form-control" placeholder="名稱 (如: 萬豪, 小樹點)"></div>
+                    <div class="tdc-col-5"><input id="raw-point-current" type="number" class="form-control" placeholder="持有數量"></div>
+                </div>
+                <button onclick="addRawAsset()" class="btn btn-outline-secondary tdc-w-100 rounded-pill font-hand fw-bold">存入資產庫</button>
+                <div class="small text-muted mt-2 tdc-text-center">💡 僅記錄名稱與數量，不具備換算公式</div>
+            </div>
+
+            <div class="input-block-card">
+                <div class="input-block-title text-warning" style="color:#d97706;"><svg class="lucide me-2"><use href="#icon-rotate"/></svg> 板塊 C：積分換算工具</div>
+                <div class="tdc-row tdc-mb-2">
+                    <div class="tdc-col-7"><input id="trans-source-name" class="form-control" placeholder="來源 (如: 匯豐旅人)"></div>
+                    <div class="tdc-col-5"><input id="trans-current" type="number" class="form-control" placeholder="持有數量"></div>
+                </div>
+                <div class="tdc-mb-2"><input id="trans-target-airline" class="form-control" placeholder="欲兌換航司 (歸戶依據)"></div>
+                <div class="bg-light p-2 rounded-3 border tdc-mb-3">
+                    <label class="small text-muted fw-bold tdc-mb-1">兌換公式 (例如: 3點 = 1哩)</label>
+                    <div class="tdc-flex tdc-align-center gap-2 tdc-mb-2">
+                        <input id="trans-unit-points" type="number" class="form-control" placeholder="3"> <span>點 =</span>
+                        <input id="trans-unit-miles" type="number" class="form-control" placeholder="1"> <span>哩</span>
+                    </div>
+                    <label class="small text-primary fw-bold tdc-mb-1 mt-2">✨ 額外轉換加碼 <span class="text-danger">(選填)</span></label>
+                    <div class="tdc-flex tdc-align-center gap-2">
+                        <span class="small fw-bold text-muted">每滿</span>
+                        <input id="trans-bonus-req" type="number" class="form-control form-control-sm" placeholder="如: 60000">
+                        <span class="small fw-bold text-muted">加贈</span>
+                        <input id="trans-bonus-give" type="number" class="form-control form-control-sm" placeholder="如: 5000">
+                        <span class="small fw-bold text-muted">哩</span>
+                    </div>
+                </div>
+                <button onclick="addTransferAsset()" class="btn btn-outline-warning tdc-w-100 rounded-pill font-hand fw-bold" style="color:#b45309; border-color:#d97706;">存入試算工具</button>
+            </div>
+            
+            <div id="warehouse-list"></div>
+        </div>
+
+        <div id="warehouse-view-planner">
+            <div class="tdc-flex gap-2 tdc-mb-3">
+                <button class="ai-btn-purple tdc-grow-1 tdc-flex flex-column tdc-align-center tdc-justify-center" onclick="startAIDiagnosis('global')">
+                    <svg class="tdc-mb-1" style="width:20px;height:20px;"><use href="#icon-sparkle"/></svg>
+                    全局資產巔峰推薦
+                </button>
+                <button class="ai-btn-blue tdc-grow-1 tdc-flex flex-column tdc-align-center tdc-justify-center" onclick="startAIDiagnosis('specific')">
+                    <svg class="tdc-mb-1" style="width:20px;height:20px;"><use href="#icon-target"/></svg>
+                    指定航線達成方案
+                </button>
+            </div>
+
+            <div class="card-box" style="background: linear-gradient(to bottom, #eff6ff, #ffffff); position: relative;">
+              <h5 class="tdc-mb-3 text-primary tdc-flex tdc-align-center"><svg class="lucide me-2"><use href="#icon-map"/></svg>設定全球兌換目標</h5>
+              <div class="tdc-row tdc-mb-2">
+                  <div class="tdc-col-6"><label class="form-label small fw-bold">🛫 出發地</label>
+                      <select id="planner-from" class="form-select" onchange="runPlannerCalc()">
+                          <option value="TW">🇹🇼 台灣</option><option value="HK_MO">🇭🇰 港澳</option><option value="CN">🇨🇳 中國大陸</option><option value="NE_ASIA">🌸 東北亞</option><option value="SE_ASIA">🥥 東南亞</option>
+                          <option value="S_ASIA">🕌 南亞 (含馬爾地夫)</option><option value="OCEANIA">🦘 大洋洲 (含關島/帛琉)</option>
+                          <option value="NA_W">🗽 北美西岸</option><option value="NA_E">🍎 北美東岸</option><option value="EU">🏰 歐洲</option>
+                          <option value="AFRICA">🦁 非洲</option><option value="S_AMERICA">🗿 南美洲</option>
+                      </select>
+                  </div>
+                  <div class="tdc-col-6"><label class="form-label small fw-bold">🛬 目的地</label>
+                      <select id="planner-to" class="form-select" onchange="runPlannerCalc()">
+                          <option value="TW">🇹🇼 台灣</option><option value="HK_MO">🇭🇰 港澳</option><option value="CN">🇨🇳 中國大陸</option><option value="NE_ASIA" selected>🌸 東北亞</option><option value="SE_ASIA">🥥 東南亞</option>
+                          <option value="S_ASIA">🕌 南亞 (含馬爾地夫)</option><option value="OCEANIA">🦘 大洋洲 (含關島/帛琉)</option>
+                          <option value="NA_W">🗽 北美西岸</option><option value="NA_E">🍎 北美東岸</option><option value="EU">🏰 歐洲</option>
+                          <option value="AFRICA">🦁 非洲</option><option value="S_AMERICA">🗿 南美洲</option>
+                      </select>
+                  </div>
+              </div>
+              <div class="tdc-row tdc-mb-2">
+                <div class="tdc-col-6"><label class="form-label small fw-bold">📅 出發日期</label><input type="date" id="planner-date" class="form-control" onchange="runPlannerCalc()"></div>
+                <div class="tdc-col-6"><label class="form-label small fw-bold">選擇艙等</label><select id="planner-class" class="form-select" onchange="runPlannerCalc()"><option value="Y">💺 經濟艙</option><option value="C">🥂 商務艙</option><option value="F">👑 頭等艙</option></select></div>
+              </div>
+              
+              <label class="switch-group tdc-mb-2">
+                <span class="switch-label fw-bold"><svg class="lucide me-1"><use href="#icon-rotate"/></svg> 行程：<span id="trip-label">來回 (Round-trip)</span></span>
+                <input class="form-check-input" type="checkbox" id="planner-trip-type" checked onchange="togglePlannerTrip()">
+              </label>
+            </div>
+            
+            <div class="tdc-mb-3 px-1 mt-3">
+                <h6 class="fw-bold text-secondary tdc-mb-2 tdc-flex tdc-align-center"><svg class="lucide me-1"><use href="#icon-box"/></svg>勾選要動用的倉庫資源</h6>
+                <div id="planner-asset-container"></div>
+            </div>
+            
+            <div id="planner-results-container"></div>
+        </div>
+    </div>
+  </div>
+
+  <div class="nav-bottom">
+    <button class="nav-item active" onclick="switchPage('calc', this)"><svg class="lucide"><use href="#icon-calc"/></svg>計算</button>
+    <button class="nav-item" onclick="switchPage('list', this)"><div style="position:relative;"><svg class="lucide"><use href="#icon-list"/></svg><span id="nav-badge-list" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display:none; font-size: 0.5rem;">0</span></div>明細</button>
+    <button class="nav-item" onclick="switchPage('status', this)"><svg class="lucide"><use href="#icon-chart"/></svg>監控</button>
+    <button class="nav-item" onclick="switchPage('warehouse', this)"><svg class="lucide"><use href="#icon-warehouse"/></svg>倉庫</button>
+  </div>
+
+  <footer class="footer-disclaimer">
+    使用者應自行留意本工具更新日期可能並非最新公告後的兌換、累積比例，儘管我們製作此網站及作出假設時已力求審慎，惟活動過程中演算結果應只視作指標，而非絕對準確計算。詳情請參考銀行所提供之活動說明。<br><br>
+    亞商卓盛華閣股份有限公司（包括但不限於母集團及旗下關聯子公司、分公司）、社團法人臺灣哩程研究社、「環哩匯・尊貴常旅客俱樂部」、「社團法人環球常旅客協會」均無須對任何人就由於使用或依賴源自此活動網站的資料而引致或與此有關的任何損失、損害或任何形式的費用（包括但不限於任何經濟損失或其他直接、間接或相應而生的損害）承擔責任。
+  </footer>
+
+  <div class="modal fade" id="customConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content tdc-text-center p-4">
+        <svg class="lucide text-danger mx-auto tdc-mb-3" style="width:3rem;height:3rem;"><use href="#icon-warn"/></svg>
+        <p class="tdc-mb-2 fw-bold text-danger fs-5">確定要還原數據嗎？</p>
+        <p class="mb-4 small text-muted">這將完全覆蓋目前手機內的所有紀錄，建議您先執行搬家備份！</p>
+        <div class="tdc-flex gap-2 tdc-w-100">
+          <button type="button" class="btn btn-light tdc-grow-1 rounded-pill" onclick="hideConfirmModal()">取消</button>
+          <button type="button" class="btn btn-danger tdc-grow-1 rounded-pill fw-bold" id="confirm-restore-btn">確定還原</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="manualAdjustModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content p-4 border-0" style="background: #fffbeb;">
+        <h5 class="fw-bold tdc-mb-3 tdc-flex tdc-align-center" style="color: #b45309;"><svg class="lucide me-2"><use href="#icon-pen"/></svg> 人工微調修正</h5>
+        <p class="small text-muted tdc-mb-3">若系統計算因匯率或四捨五入產生誤差，請在此輸入您實際獲取的正確數字以進行記帳：</p>
+        <div class="input-wrapper tdc-mb-3">
+            <input type="number" id="manual-adjust-val" class="form-control border-warning pe-5" placeholder="例如: 1500" style="font-size: 1.2rem; color: #b45309 !important;">
+            <button class="btn-inline-clear" type="button" onclick="clearInput('manual-adjust-val')">⊗</button>
+        </div>
+        <input type="hidden" id="manual-adjust-idx">
+        <div class="tdc-flex gap-2">
+          <button type="button" class="btn btn-light tdc-grow-1 rounded-pill" data-bs-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-warning text-white tdc-grow-1 rounded-pill fw-bold" onclick="confirmManualAdjust()" style="background: #f59e0b; border:none; box-shadow: 2px 2px 0 #d97706;">強制記帳</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="modal fade" id="editLimitModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content p-4 border-0" style="background: #f8fafc;">
+        <h5 class="fw-bold tdc-mb-3 tdc-flex tdc-align-center text-primary-dark"><svg class="lucide me-2"><use href="#icon-pen"/></svg> 修改已消耗額度</h5>
+        <p class="small text-muted tdc-mb-3">請輸入此卡片本期「已經消耗」的累積金額。系統將直接覆寫現有進度：</p>
+        <div class="input-wrapper tdc-mb-3">
+            <input type="number" id="edit-limit-val" class="form-control border-primary pe-5" placeholder="例如: 15000" style="font-size: 1.2rem; color: #1e40af !important;">
+            <button class="btn-inline-clear" type="button" onclick="clearInput('edit-limit-val')">⊗</button>
+        </div>
+        <input type="hidden" id="edit-limit-id">
+        <div class="tdc-flex gap-2">
+          <button type="button" class="btn btn-light tdc-grow-1 rounded-pill" data-bs-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary tdc-grow-1 rounded-pill fw-bold" onclick="confirmEditLimit()">確認修改</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="aiIntroModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content p-4" style="background: linear-gradient(to bottom, #faf5ff, #ffffff);">
+        <div class="tdc-text-center tdc-mb-3">
+            <svg class="text-primary tdc-mb-2" style="width:2rem;height:2rem; color:#a855f7 !important;"><use href="#icon-sparkle"/></svg>
+            <h5 class="fw-bold tdc-m-0" style="color: #4c1d95;">解鎖雙引擎 AI 戰略軍師</h5>
+        </div>
+        <div class="px-2 mb-4">
+          <div class="tdc-flex align-items-start tdc-mb-3"><div class="fw-bold me-2 mt-1" style="color:#8b5cf6;">●</div><div class="small"><b>全局巔峰推薦</b>：掃描所有資產，主動找出單哩價值最高的隱藏航線。</div></div>
+          <div class="tdc-flex align-items-start tdc-mb-3"><div class="fw-bold me-2 mt-1" style="color:#8b5cf6;">●</div><div class="small"><b>指定路徑精算</b>：鎖定您的目的地，提供直飛、聯盟、套利等多種方案對比。</div></div>
+          <div class="tdc-flex align-items-start tdc-mb-3"><div class="fw-bold me-2 mt-1" style="color:#8b5cf6;">●</div><div class="small"><b>實時規章審計</b>：比對最新官方鐵律，主動糾正過時比例。</div></div>
+        </div>
+        <button class="btn btn-primary tdc-w-100 rounded-pill fw-bold font-hand py-2" style="background: var(--ai-purple); border:none; box-shadow: 0 4px 10px rgba(124,58,237,0.3);" onclick="goToSettingsFromAI()">前往設定解鎖</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="settingsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="tdc-flex tdc-justify-between tdc-align-center tdc-mb-3">
+            <h5 class="fw-bold tdc-m-0 tdc-flex tdc-align-center"><svg class="lucide me-2 text-primary"><use href="#icon-gear"/></svg>系統設定與管理</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-0">
+          <div class="mb-4">
+            <div class="tdc-flex tdc-justify-between tdc-align-center tdc-mb-2">
+              <label class="fw-bold text-primary small tdc-m-0" style="color:#6d28d9 !important;">Google Gemini API 金鑰</label>
+              <a href="https://aistudio.google.com/app/apikey" target="_blank" class="small text-decoration-none fw-bold" style="color: #8b5cf6;">如何取得 Key？</a>
+            </div>
+            <div class="input-wrapper tdc-mb-2">
+                <input type="password" id="gemini-key" class="form-control rounded-pill pe-5" placeholder="貼上金鑰解鎖雙引擎 AI">
+                <button class="btn-inline-clear" type="button" onclick="clearInput('gemini-key')">⊗</button>
+            </div>
+            
+            <div class="tdc-flex tdc-justify-between tdc-align-center mt-3 tdc-mb-2">
+              <label class="fw-bold text-danger small tdc-m-0">GitHub Gist Token (維護者權限)</label>
+            </div>
+            <div class="input-wrapper">
+                <input type="password" id="github-token" class="form-control rounded-pill border-danger pe-5" placeholder="一般使用者請留空">
+                <button class="btn-inline-clear" type="button" onclick="clearInput('github-token')">⊗</button>
+            </div>
+            <div class="small text-muted mt-1 px-2">填寫此欄位，AI 戰報將自動產出 rules.json 補丁代碼區塊。</div>
+
+            <div class="security-alert-box mt-3">
+              <div class="fw-bold tdc-mb-1 tdc-flex tdc-align-center"><svg class="lucide me-1"><use href="#icon-shield"/></svg> 資安與隱私承諾</div>
+              <ul class="mb-0 ps-3">
+                <li>本工具為純前端架構，無第三方伺服器。</li>
+                <li>金鑰僅加密儲存於設備本地，請安心使用。</li>
+              </ul>
+            </div>
+            <button class="btn btn-primary tdc-w-100 rounded-pill fw-bold font-hand py-2 mt-3" onclick="saveSettings()">儲存設定</button>
+          </div>
+          <div class="mb-4">
+            <div class="fw-bold tdc-mb-2 text-primary">加碼資格確認</div>
+            <label class="switch-group tdc-mb-2">
+                <span class="switch-label">匯豐 Live+ 自動扣繳 <small class="text-muted fw-normal">(精選+1%)</small></span>
+                <input class="form-check-input" type="checkbox" id="setting-hsbc-autopay">
+            </label>
+          </div>
+          
+          <div class="mb-4 p-3" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px;">
+            <div class="fw-bold tdc-mb-2 text-primary-dark tdc-flex tdc-align-center"><svg class="lucide me-1"><use href="#icon-target"/></svg>卡片結帳日設定 (1~31)</div>
+            <div class="small text-muted tdc-mb-3">設定後將精準連動您的月度額度歸零進度</div>
+            <div id="billing-days-container"></div>
+          </div>
+
+          <div class="mb-4">
+            <div class="fw-bold tdc-mb-2 text-primary">內建神卡開關 (影響計算與監控)</div>
+            <div id="builtin-cards-list"></div>
+          </div>
+          <div class="mb-4">
+            <div class="fw-bold tdc-mb-2 text-primary">自訂卡片 (含客製化防護)</div>
+            <div id="custom-cards-list"></div>
+            <button class="btn btn-light tdc-w-100 mt-2 font-hand" onclick="addCustomCard()">+ 新增自訂卡片</button>
+          </div>
+          <div class="mb-4" style="background: #fff7ed; border: 2px dashed #fed7aa; border-radius: 20px; padding: 16px;">
+            <div class="fw-bold tdc-mb-3 text-warning tdc-flex tdc-align-center" style="color:#b45309;"><svg class="lucide me-2"><use href="#icon-copy"/></svg> 💾 數據搬家中心</div>
+            <button class="btn btn-warning tdc-w-100 fw-bold rounded-pill tdc-mb-2 font-hand text-white" style="background: #f59e0b; border:none; padding:12px;" onclick="exportDataMagic()">複製搬家代碼</button>
+            <button class="btn btn-primary tdc-w-100 fw-bold rounded-pill font-hand" style="background: #3b82f6; border:none; padding:12px;" onclick="triggerRestoreFlow()">貼上還原代碼</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="aiReportModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content p-3 border-0" style="background: #f8fafc;">
+        <div class="tdc-flex tdc-justify-between tdc-align-center tdc-mb-3">
+          <h5 class="fw-bold tdc-m-0 tdc-flex tdc-align-center" id="ai-modal-title" style="color: #6d28d9;"><svg class="me-2" style="width:20px;height:20px;"><use href="#icon-sparkle"/></svg>系統診斷回報</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-0" id="ai-report-content">
+          </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="guideModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable">
+      <div class="modal-content border-0">
+        <div class="tdc-flex tdc-justify-between tdc-align-center tdc-mb-3 p-3 pb-0">
+          <h5 class="fw-bold tdc-m-0 tdc-flex tdc-align-center text-primary-dark"><svg class="lucide me-2"><use href="#icon-book"/></svg>SOP 戰略操作指南</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-3 pt-0">
+          <div class="p-3 tdc-mb-3" style="background-color: #f0f4f3; border-left: 5px solid #84a59d; border-radius: 12px;">
+              <div class="tdc-flex tdc-align-center tdc-mb-2"><span class="badge rounded-pill me-2" style="background:#84a59d; font-size:1rem;">1</span><h6 class="fw-bold tdc-m-0" style="color:#2f4f4f;">計算與記帳基礎</h6></div>
+              <p class="small text-muted tdc-m-0" style="line-height:1.6;">在首頁輸入消費金額與類別，系統將自動套用最新規章算出最優惠信用卡。點擊「開始計算」後，選擇最佳卡片按下「記帳」按鈕即可存入明細。若為外幣消費，請先選擇「🌎 外幣」並輸入牌告匯率，系統將自動為您試算折合台幣本金與 1.5% 手續費；如需退刷或修正上限額度，請點擊輸入框下方的「退刷/修正」按鈕。</p>
+          </div>
+          <div class="p-3 tdc-mb-3" style="background-color: #fcf4f3; border-left: 5px solid #e5989b; border-radius: 12px;">
+              <div class="tdc-flex tdc-align-center tdc-mb-2"><span class="badge rounded-pill me-2" style="background:#e5989b; font-size:1rem;">2</span><h6 class="fw-bold tdc-m-0" style="color:#8a4f4f;">神卡上限預警與手動修正</h6></div>
+              <p class="small text-muted tdc-m-0" style="line-height:1.6;">本工具內建匯豐 Live+ 加碼上限與台新國泰百萬防溢位機制（支援自訂上限金額），當您的消費超出卡片剩餘額度時，系統會顯示紅框並強制降級回饋率。若系統計算結果因匯率差或四捨五入產生微小落差，您可以點擊結果卡片上的「✏️ 修正」按鈕，直接輸入您帳單上實際獲得的點數進行強制記帳，以保證帳目 100% 精準。</p>
+          </div>
+          <div class="p-3 tdc-mb-3" style="background-color: #f0f4f8; border-left: 5px solid #95b8d1; border-radius: 12px;">
+              <div class="tdc-flex tdc-align-center tdc-mb-2"><span class="badge rounded-pill me-2" style="background:#95b8d1; font-size:1rem;">3</span><h6 class="fw-bold tdc-m-0" style="color:#4a6fa5;">監控結算與一鍵進倉</h6></div>
+              <p class="small text-muted tdc-m-0" style="line-height:1.6;">每到信用卡結帳日後，請至下方的「監控」分頁。您可以在這裡一覽本期各卡別的累積總額，確認無誤後點擊「一鍵進倉」，系統會自動將本月累積的所有明細，轉化為「航空哩程」或「通用積分」並收納至倉庫。若需手動調整某張卡的已刷卡額度，也可點擊進度條旁的「✏️ 編輯」直接覆寫。</p>
+          </div>
+          <div class="p-3 tdc-mb-3" style="background-color: #f5f3ff; border-left: 5px solid #a855f7; border-radius: 12px;">
+              <div class="tdc-flex tdc-align-center tdc-mb-2"><span class="badge rounded-pill me-2" style="background:#a855f7; font-size:1rem;">4</span><h6 class="fw-bold tdc-m-0" style="color:#5b21b6;">雙引擎 AI 戰略與倉庫資產</h6></div>
+              <p class="small text-muted tdc-m-0" style="line-height:1.6;">前往頂部齒輪「設定」貼上 Google Gemini API Key，即可在「倉庫 > 兌換試算」頁面解鎖 AI 雙引擎！勾選您要動用的資產，您可以點擊「戰略紫」進行全域盲測，或點擊「精準藍」獲取包含開口、轉機與後續刷卡建議的神仙提案！</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="customAlertModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content tdc-text-center p-4 border-0 shadow-lg">
+        <svg class="lucide text-warning tdc-mb-3 mx-auto" style="width:3rem;height:3rem;"><use href="#icon-warn"/></svg>
+        <p class="mb-4 fw-bold text-secondary" id="alert-msg" style="font-size: 1.05rem; line-height: 1.5;"></p>
+        <button type="button" class="btn btn-primary rounded-pill px-5 mx-auto font-hand" data-bs-dismiss="modal">我知道了</button>
+      </div>
+    </div>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    /* ==========================================
+       TDC 航空累哩工具 v14.9 終極防禦版 - 核心 JS 運算引擎
+       ========================================== */
+    const DB_KEY = 'MILES_APP_V14_9'; 
+    let currentResults = [];
+    let plannerSelectedAssets = new Set(); 
+
+    // --- 內建防禦、卡片定義與轉點字典 ---
+    const BUILTIN_DEFS = [
+      { id: 'hsbc_live', name: '匯豐 Live+', default: true },
+      { id: 'ctbc_ci_inf', name: '中信 華航璀璨', default: false },
+      { id: 'taishin_cx',name: '台新 國泰世界',default: true },
+      { id: 'hsbc_inf',  name: '匯豐 旅人無限',default: true },
+      { id: 'ctbc_ci',   name: '中信 華航鼎尊', default: true }
+    ];
+    
+    const AUTO_ASSETS = {
+        'hsbc_live': { target: '匯豐 旅人積分', type: 'transfer', ratio: 2, unitPoints:1, unitMiles:2 },
+        'hsbc_inf': { target: '匯豐 旅人積分', type: 'transfer', ratio: 1, unitPoints:1, unitMiles:1 },
+        'ctbc_ci': { target: '中華航空', type: 'airline', ratio: 1, unitPoints:1, unitMiles:1 },
+        'ctbc_ci_inf': { target: '中華航空', type: 'airline', ratio: 1, unitPoints:1, unitMiles:1 },
+        'taishin_cx': { target: '國泰航空', type: 'airline', ratio: 1, unitPoints:1, unitMiles:1 }
+    };
+
+    const TRANSFER_DICT = {
+        '匯豐旅人積分': {
+            supported_partners: [
+                '中華航空', '長榮航空', '國泰航空(亞洲萬里通)', '新加坡航空', '日本航空(JAL)', '聯合航空(UA)', '卡達航空', 
+                '法國航空/荷蘭皇家航空', '加拿大航空', '越南航空', '海南航空', '亞洲航空(AirAsia)', 
+                '洲際酒店集團(IHG)', '雅高酒店集團(ALL Accor)', '萬豪旅享家(Marriott Bonvoy)'
+            ],
+            ratio: '1 點 = 1 哩/積分'
+        },
+        '匯豐Live+積分': {
+            supported_partners: [
+                '中華航空', '長榮航空', '國泰航空(亞洲萬里通)', '新加坡航空', '日本航空(JAL)', '聯合航空(UA)', '卡達航空', 
+                '法國航空/荷蘭皇家航空', '加拿大航空', '越南航空', '海南航空', '亞洲航空(AirAsia)', 
+                '洲際 ক্ষমতায়集團(IHG)', '雅高酒店集團(ALL Accor)', '萬豪旅享家(Marriott Bonvoy)'
+            ],
+            ratio: '1 點 = 2 哩/積分 (系統已自動以 1:2 換算並併入匯豐旅人積分池中)'
+        }
+    };
+
+    const DEFAULT_BILLING = { hsbc:6, ctbc:15, taishin:20, other:1 };
+    
+    const LIVE_KEYWORDS = { 
+      'dining':['餐廳','吃飯','外送','ubereats','foodpanda','燒肉','火鍋','麻辣','壽司','日式','居酒屋','餐酒館','酒吧','咖啡','甜點','牛排','鐵板燒','拉麵','茶六','屋馬','乾杯','buffet','王品','享鴨','夏慕尼','西堤','石二鍋','陶板屋','青花驕','饗賓','饗饗','開飯','瓦城','鼎泰豐','海底撈','金大鋤','築間','壽司郎','藏壽司','爭鮮','吉兆','明壽司','金色三麥','春大直','貳樓','涓豆腐','hooters','勝田','麥當勞','星巴克','必勝客','達美樂','富王','文公館','教父牛排','山海樓','鹽之華','牡丹','logy','inita','ikea','莫凡彼','貴族世家'], 
+      'shop':['momo','pchome','蝦皮','shopee','amazon','ebay','露天','friday','gomaji','淘寶','uniqlo','zara','h&m','net','gu','nike','adidas','outlet','台北101','三井','微風','sogo','漢神','華泰','新光','skm','att','美麗華','南紡','統一時代','遠雄','京站','citylink','夢時代','lalaport','高島屋','中友','遠企','麗寶','比漾','大江','巨城','遠東','global mall','環球','義大','台茂','宏匯','義享','noke','大魯閣','明曜','bellavita','寶雅','無印良品','muji','屈臣氏','康是美','松本清','唐吉訶德'], 
+      'entertainment':['新光影城','威秀','國賓','秀泰','環球影城','迪士尼','吉卜力','樂天世界','legoland','safari','兒童新樂園','x park','小人國','六福村','海洋公園','麗寶樂園','劍湖山','九族','尚順','義大遊樂','巧虎','動物園','海生館','奇美博物館','小叮噹','野柳','埔心','飛牛','頑皮世界','美術館','日月潭','太平山','阿里山','大雪山','墾丁','森林遊樂區'] 
+    };
+    
+    const STRICT_ONLINE = ['flight_ci','flight_cx','flight_other']; 
+    const CTBC_BLOCK = ['全聯','px','全支付','7-11','711','全家','萊爾富','ok超商','繳費','etoro','wise','revolut','麥當勞','肯德基','漢堡王','摩斯'];
+    const HSBC_BLOCK_BASE = ['全聯','px','7-11','711','全家','萊爾富','ok超商','繳費','判決書','醫療','掛號','年費','手續費','賭博','麥當勞','肯德基'];
+    const HSBC_LIVE_BLOCK = ['全聯','px','7-11','711','全家','萊爾富','ok超商','繳費','判決書','醫療','掛號','年費','手續費','賭博'];
+    const TAISHIN_BLOCK = ['分期','全聯','px','7-11','711','全家','萊爾富','ok超商','繳費','國民年金','etag','三商美邦','麥當勞','肯德基'];
+
+    const ASIA_7_KEYWORDS = ['日本', '日幣', '日圓', 'jpy', 'tokyo', 'osaka', '新加坡', 'sgd', '馬來西亞', 'myr', '越南', 'vnd', '菲律賓', 'php', '印度', 'inr', '斯里蘭卡', 'lkr'];
+    const EU_UK_KEYWORDS = ['歐洲', '歐盟', '英國', '法國', '德國', '義大利', '西班牙', 'eur', 'gbp', 'london', 'paris'];
