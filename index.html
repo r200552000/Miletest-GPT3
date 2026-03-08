@@ -638,3 +638,356 @@
   </div>
   
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+/* ==========================================
+   TDC 航空累哩工具 v14.9 終極防禦版 - 核心 JS 運算引擎
+   ========================================== */
+const DB_KEY = 'MILES_APP_V14_9';
+let currentResults = [];
+let plannerSelectedAssets = new Set();
+
+// --- 內建防禦、卡片定義與轉點字典 ---
+const BUILTIN_DEFS = [
+  { id: 'hsbc_live', name: '匯豐 Live+', default: true },
+  { id: 'ctbc_ci_inf', name: '中信 華航璀璨', default: false },
+  { id: 'taishin_cx', name: '台新 國泰世界', default: true },
+  { id: 'hsbc_inf', name: '匯豐 旅人無限', default: true },
+  { id: 'ctbc_ci', name: '中信 華航鼎尊', default: true }
+];
+
+const AUTO_ASSETS = {
+  'hsbc_live': { target: '匯豐Live+積分', type: 'transfer', ratio: 2, unitPoints: 1, unitMiles: 2 },
+  'hsbc_inf': { target: '匯豐旅人積分', type: 'transfer', ratio: 1, unitPoints: 1, unitMiles: 1 },
+  'ctbc_ci': { target: '中華航空', type: 'airline', ratio: 1, unitPoints: 1, unitMiles: 1 },
+  'ctbc_ci_inf': { target: '中華航空', type: 'airline', ratio: 1, unitPoints: 1, unitMiles: 1 },
+  'taishin_cx': { target: '國泰航空', type: 'airline', ratio: 1, unitPoints: 1, unitMiles: 1 }
+};
+
+const TRANSFER_DICT = {
+  '匯豐旅人積分': {
+    supported_partners: [
+      '中華航空', '長榮航空', '國泰航空(亞洲萬里通)', '新加坡航空', '日本航空(JAL)', '聯合航空(UA)', '卡達航空',
+      '法國航空/荷蘭皇家航空', '加拿大航空', '越南航空', '海南航空', '亞洲航空(AirAsia)',
+      '洲際酒店集團(IHG)', '雅高酒店集團(ALL Accor)', '萬豪旅享家(Marriott Bonvoy)'
+    ],
+    ratio: '1 點 = 1 哩/積分'
+  },
+  '匯豐Live+積分': {
+    supported_partners: [
+      '中華航空', '長榮航空', '國泰航空(亞洲萬里通)', '新加坡航空'
+    ],
+    ratio: '1 點 = 2 哩/積分'
+  }
+};
+
+const DEFAULT_BILLING = { hsbc: 6, ctbc: 15, taishin: 20, other: 1 };
+
+const LIVE_KEYWORDS = {
+  dining: ['餐廳','吃飯','外送','ubereats','foodpanda','燒肉','火鍋','麻辣','壽司','日式','居酒屋','餐酒館','酒吧','咖啡','甜點','牛排','鐵板燒','拉麵','茶六','屋馬','乾杯','buffet','王品','享鴨','夏慕尼','西堤','石二鍋','陶板屋','青花驕','饗賓','饗饗','開飯','瓦城','鼎泰豐','海底撈','金大鋤','築間','壽司郎','藏壽司','爭鮮','吉兆','明壽司','金色三麥','春大直','貳樓','涓豆腐','hooters','勝田','麥當勞','星巴克','必勝客','達美樂','富王','文公館','教父牛排','山海樓','鹽之華','牡丹','logy','inita','ikea','莫凡彼','貴族世家'],
+  shop: ['momo','pchome','蝦皮','shopee','amazon','ebay','露天','friday','gomaji','淘寶','uniqlo','zara','h&m','net','gu','nike','adidas','outlet','台北101','三井','微風','sogo','漢神','華泰','新光','skm','att','美麗華','南紡','統一時代','遠雄','京站','citylink','夢時代','lalaport','高島屋','中友','遠企','麗寶','比漾','大江','巨城','遠東','global mall','環球','義大','台茂','宏匯','義享','noke','大魯閣','明曜','bellavita','寶雅','無印良品','muji','屈臣氏','康是美','松本清','唐吉訶德'],
+  entertainment: ['新光影城','威秀','國賓','秀泰','環球影城','迪士尼','吉卜力','樂天世界','legoland','safari','兒童新樂園','x park','小人國','六福村','海洋公園','麗寶樂園','劍湖山','九族','尚順','義大遊樂','巧虎','動物園','海生館','奇美博物館','小叮噹','野柳','埔心','飛牛','頑皮世界','美術館','日月潭','太平山','阿里山','大雪山','墾丁','森林遊樂區']
+};
+
+const STRICT_ONLINE = ['flight_ci', 'flight_cx', 'flight_other'];
+const CTBC_BLOCK = ['全聯','px','全支付','7-11','711','全家','萊爾富','ok超商','繳費','etoro','wise','revolut','麥當勞','肯德基','漢堡王','摩斯'];
+const HSBC_BLOCK_BASE = ['全聯','px','7-11','711','全家','萊爾富','ok超商','繳費','判決書','醫療','掛號','年費','手續費','賭博','麥當勞','肯德基'];
+const HSBC_LIVE_BLOCK = ['全聯','px','7-11','711','全家','萊爾富','ok超商','繳費','判決書','醫療','掛號','年費','手續費','賭博'];
+const TAISHIN_BLOCK = ['分期','全聯','px','7-11','711','全家','萊爾富','ok超商','繳費','國民年金','etag','三商美邦','麥當勞','肯德基'];
+
+const ASIA_7_KEYWORDS = ['日本', '日幣', '日圓', 'jpy', 'tokyo', 'osaka', '新加坡', 'sgd', '馬來西亞', 'myr', '越南', 'vnd', '菲律賓', 'php', '印度', 'inr', '斯里蘭卡', 'lkr'];
+const EU_UK_KEYWORDS = ['歐洲', '歐盟', '英國', '法國', '德國', '義大利', '西班牙', 'eur', 'gbp', 'london', 'paris'];
+
+const RULE_AUDITOR = {
+  configUrls: [
+    "https://gist.githubusercontent.com/r200552000/bdced9d179ec50a9dde110732601f310/raw/f18af962ced6f0b12fbccc7697cecc8bdc805368/rules.json",
+    "https://gist.githubusercontent.com/r200552000/b13dba96ccd29a551c868da26230300f/raw/f5a449f244a5783b3f3339f9a394648528f6d42b/rules-2.json"
+  ],
+  activeRules: null,
+  auditReport: [],
+  patchData: {
+    AUTO_ASSETS_PATCH: {},
+    BLOCKLIST_PATCH: {},
+    SIMPLE_CARD_RULE_PATCH: {},
+    KEYWORD_PATCH: {},
+    TRANSFER_DICT_PATCH: {},
+    UNSUPPORTED_LOGIC_NOTES: []
+  },
+  globalStatus: "SAFE",
+
+  init: async function() {
+    this.updateBadge("Auditor: Syncing...", "bg-warning", "text-dark");
+    try {
+      const fetches = this.configUrls.map(url =>
+        fetch(url).then(r => r.ok ? r.json() : null).catch(() => null)
+      );
+      const results = await Promise.all(fetches);
+      const validRules = results.filter(r => r && r.version && r.last_updated);
+
+      if (validRules.length === 0) {
+        this.updateBadge("Auditor: Offline", "bg-secondary", "text-white");
+        return;
+      }
+
+      validRules.sort((a, b) => this.compareVersions(a, b));
+      this.activeRules = validRules[0];
+
+      this.auditAllBuiltinCards();
+
+      if (this.globalStatus === "SAFE") {
+        this.updateBadge("Auditor: Active (Safe)", "bg-success", "text-white");
+      } else if (this.globalStatus === "PATCHABLE") {
+        this.updateBadge("Auditor: Drift Detected", "bg-warning", "text-dark");
+      } else {
+        this.updateBadge("Auditor: Logic Update Req.", "bg-danger", "text-white");
+      }
+    } catch (e) {
+      console.warn("[RULE_AUDITOR] Init failed", e);
+      this.updateBadge("Auditor: Error", "bg-danger", "text-white");
+    }
+  },
+
+  compareVersions: function(a, b) {
+    const dateA = new Date(a.last_updated || 0).getTime();
+    const dateB = new Date(b.last_updated || 0).getTime();
+    if (dateA !== dateB) return dateB - dateA;
+
+    const vA = (a.version || "0.0.0").split('.').map(Number);
+    const vB = (b.version || "0.0.0").split('.').map(Number);
+    for (let i = 0; i < Math.max(vA.length, vB.length); i++) {
+      const numA = vA[i] || 0;
+      const numB = vB[i] || 0;
+      if (numA !== numB) return numB - numA;
+    }
+    return 0;
+  },
+
+  updateBadge: function(text, bgClass, textClass) {
+    const badge = document.getElementById('rule-auditor-status');
+    if (badge) {
+      badge.classList.remove('bg-warning', 'bg-success', 'bg-danger', 'bg-secondary', 'text-dark', 'text-white');
+      badge.classList.add(bgClass, textClass);
+      badge.innerText = text;
+    }
+  },addReport: function(level, category, message, source_path, local_target, patchCategory = null, patchObj = null) {
+    this.auditReport.push({ level, category, message, source_path, local_target });
+
+    if (level === "LOGIC_UPDATE_REQUIRED") {
+      this.globalStatus = "LOGIC_UPDATE_REQUIRED";
+      const noteStr = `[${source_path}] -> ${message}`;
+      if (!this.patchData.UNSUPPORTED_LOGIC_NOTES.includes(noteStr)) {
+        this.patchData.UNSUPPORTED_LOGIC_NOTES.push(noteStr);
+      }
+    } else if (level === "PATCHABLE" && this.globalStatus !== "LOGIC_UPDATE_REQUIRED") {
+      this.globalStatus = "PATCHABLE";
+    }
+
+    if (patchObj && patchCategory && level === "PATCHABLE") {
+      if (!this.patchData[patchCategory]) this.patchData[patchCategory] = {};
+
+      for (const key in patchObj) {
+        const value = patchObj[key];
+
+        if (Array.isArray(value)) {
+          this.patchData[patchCategory][key] = value.slice();
+        } else if (value && typeof value === 'object') {
+          if (!this.patchData[patchCategory][key] || typeof this.patchData[patchCategory][key] !== 'object' || Array.isArray(this.patchData[patchCategory][key])) {
+            this.patchData[patchCategory][key] = {};
+          }
+          Object.assign(this.patchData[patchCategory][key], value);
+        } else {
+          this.patchData[patchCategory][key] = value;
+        }
+      }
+    }
+  },
+
+  compareArrayRules: function(category, listName, localArr, remoteArr, patchCategory, sourcePath, localTarget) {
+    if (!remoteArr || !Array.isArray(remoteArr)) return;
+
+    const localSet = new Set(localArr);
+    const remoteSet = new Set(remoteArr);
+
+    const missingInLocal = remoteArr.filter(x => !localSet.has(x));
+    const extraInLocal = localArr.filter(x => !remoteSet.has(x));
+
+    if (missingInLocal.length > 0 || extraInLocal.length > 0) {
+      const patchPayload = { [listName]: remoteArr };
+      const msg = [];
+      if (missingInLocal.length > 0) msg.push(`缺漏 ${missingInLocal.length} 筆`);
+      if (extraInLocal.length > 0) msg.push(`多出 ${extraInLocal.length} 筆`);
+      this.addReport(
+        "PATCHABLE",
+        category,
+        `陣列不一致: ${msg.join(', ')}`,
+        sourcePath,
+        localTarget,
+        patchCategory,
+        patchPayload
+      );
+    }
+  },
+
+  auditAllBuiltinCards: function() {
+    this.auditReport = [];
+    this.patchData = {
+      AUTO_ASSETS_PATCH: {},
+      BLOCKLIST_PATCH: {},
+      SIMPLE_CARD_RULE_PATCH: {},
+      KEYWORD_PATCH: {},
+      TRANSFER_DICT_PATCH: {},
+      UNSUPPORTED_LOGIC_NOTES: []
+    };
+    this.globalStatus = "SAFE";
+
+    const remote = this.activeRules;
+    if (!remote) return;
+
+    if (remote.auto_assets) {
+      for (const cardId in remote.auto_assets) {
+        if (typeof AUTO_ASSETS !== 'undefined' && AUTO_ASSETS[cardId]) {
+          const local = AUTO_ASSETS[cardId];
+          const rem = remote.auto_assets[cardId];
+
+          if (
+            local.ratio !== rem.ratio ||
+            local.unitPoints !== rem.unitPoints ||
+            local.unitMiles !== rem.unitMiles ||
+            local.target !== rem.target
+          ) {
+            this.addReport(
+              "PATCHABLE",
+              "AUTO_ASSETS",
+              `${cardId} 設定落後`,
+              `auto_assets.${cardId}`,
+              `AUTO_ASSETS['${cardId}']`,
+              "AUTO_ASSETS_PATCH",
+              { [cardId]: rem }
+            );
+          }
+        }
+      }
+    }
+
+    if (remote.transfer_dict) {
+      const dictKeys = ['匯豐旅人積分', '匯豐Live+積分'];
+      for (const key of dictKeys) {
+        if (remote.transfer_dict[key] && remote.transfer_dict[key].supported_partners && TRANSFER_DICT[key]) {
+          this.compareArrayRules(
+            "TRANSFER_DICT",
+            key,
+            TRANSFER_DICT[key].supported_partners,
+            remote.transfer_dict[key].supported_partners,
+            "TRANSFER_DICT_PATCH",
+            `transfer_dict['${key}'].supported_partners`,
+            `TRANSFER_DICT['${key}'].supported_partners`
+          );
+        }
+      }
+    }
+
+    if (remote.blocklists) {
+      this.compareArrayRules("BLOCKLISTS", "hsbc_base", typeof HSBC_BLOCK_BASE !== 'undefined' ? HSBC_BLOCK_BASE : [], remote.blocklists.hsbc_base, "BLOCKLIST_PATCH", "blocklists.hsbc_base", "HSBC_BLOCK_BASE");
+      this.compareArrayRules("BLOCKLISTS", "hsbc_live", typeof HSBC_LIVE_BLOCK !== 'undefined' ? HSBC_LIVE_BLOCK : [], remote.blocklists.hsbc_live, "BLOCKLIST_PATCH", "blocklists.hsbc_live", "HSBC_LIVE_BLOCK");
+      this.compareArrayRules("BLOCKLISTS", "ctbc", typeof CTBC_BLOCK !== 'undefined' ? CTBC_BLOCK : [], remote.blocklists.ctbc, "BLOCKLIST_PATCH", "blocklists.ctbc", "CTBC_BLOCK");
+      this.compareArrayRules("BLOCKLISTS", "taishin", typeof TAISHIN_BLOCK !== 'undefined' ? TAISHIN_BLOCK : [], remote.blocklists.taishin, "BLOCKLIST_PATCH", "blocklists.taishin", "TAISHIN_BLOCK");
+    }
+
+    const remoteAsia7 = remote.card_rules?.hsbc_live?.hsbc_live_policy?.asia7_countries;
+    if (remoteAsia7) {
+      this.compareArrayRules(
+        "KEYWORDS",
+        "ASIA_7_KEYWORDS",
+        typeof ASIA_7_KEYWORDS !== 'undefined' ? ASIA_7_KEYWORDS : [],
+        remoteAsia7,
+        "KEYWORD_PATCH",
+        "card_rules.hsbc_live.hsbc_live_policy.asia7_countries",
+        "ASIA_7_KEYWORDS"
+      );
+    }
+
+    this.auditReport.push({
+      level: "SAFE",
+      category: "KEYWORDS",
+      message: "外掛未提供，不列入審計",
+      source_path: "N/A",
+      local_target: "EU_UK_KEYWORDS"
+    });
+
+    const localFacts = {
+      'ctbc_ci_inf': { base_div: 20, birthday_bonus_div: 6.6, flight_bonus_div: 10, annual_cap: 600000 },
+      'hsbc_live': { select_cap: 29600, autopay_cap: 20000, asia_cap: 20000 },
+      'taishin_cx': { domestic_div: 22, overseas_div: 15, flight_bonus_div: 5, annual_cap: 1000000 },
+      'hsbc_inf': { base_div: 18, overseas_flight_div: 10 },
+      'ctbc_ci': { base_div: 18, flight_ci_div: 9, overseas_bonus_div: 9, birthday_bonus_div: 6, annual_cap: 1440000 }
+    };
+
+    const targetFields = [
+      'base_div', 'overseas_bonus_div', 'birthday_bonus_div', 'flight_bonus_div',
+      'domestic_div', 'overseas_div', 'overseas_flight_div', 'flight_ci_div',
+      'base_rate', 'select_bonus_rate', 'autopay_bonus_rate', 'asia_bonus_rate',
+      'annual_cap', 'select_cap', 'autopay_cap', 'asia_cap'
+    ];
+
+    if (remote.card_rules) {
+      const targetCards = ['hsbc_live', 'hsbc_inf', 'ctbc_ci', 'ctbc_ci_inf', 'taishin_cx'];
+      for (const cardId of targetCards) {
+        const rCard = remote.card_rules[cardId];
+        if (!rCard) continue;
+
+        const lCard = localFacts[cardId] || {};
+                for (const field of targetFields) {
+          if (rCard[field] !== undefined) {
+            if (lCard[field] !== undefined && lCard[field] !== rCard[field]) {
+              if (
+                cardId === 'hsbc_live' &&
+                (field === 'select_cap' || field === 'autopay_cap' || field === 'asia_cap' || field === 'annual_cap')
+              ) {
+                this.addReport(
+                  "LOGIC_UPDATE_REQUIRED",
+                  "CARD_RULES",
+                  `${cardId} 發現上限數值差異 (${field}: ${rCard[field]})。注意：前端硬編碼為消費額，外掛可能為點數上限，單位不一致不可直接覆蓋。`,
+                  `card_rules.${cardId}.${field}`,
+                  `Hardcoded in JS`
+                );
+              } else {
+                this.addReport(
+                  "PATCHABLE",
+                  "CARD_RULES",
+                  `${cardId} 數值落後 (${field} 應為 ${rCard[field]})`,
+                  `card_rules.${cardId}.${field}`,
+                  `Hardcoded in JS / cap limits`,
+                  "SIMPLE_CARD_RULE_PATCH",
+                  { [cardId]: { [field]: rCard[field] } }
+                );
+              }
+            }
+          }
+        }
+
+        for (const key in rCard) {
+          if (typeof rCard[key] === 'object' && rCard[key] !== null && !Array.isArray(rCard[key])) {
+            this.addReport(
+              "LOGIC_UPDATE_REQUIRED",
+              "CARD_RULES",
+              `${cardId} 發現深層巢狀規則 [${key}]，主程式需修改 JS 邏輯接線。`,
+              `card_rules.${cardId}.${key}`,
+              `CARD_RULES['${cardId}'].calc`
+            );
+          }
+        }
+      }
+    }
+  },
+
+  buildMaintainerPatch: function() {
+    let hasPatch = false;
+
+    for (const k in this.patchData) {
+      if (k === 'UNSUPPORTED_LOGIC_NOTES' && this.patchData[k].length > 0) hasPatch = true;
+      if (k !== 'UNSUPPORTED_LOGIC_NOTES' && Object.keys(this.patchData[k]).length > 0) hasPatch = true;
+    }
+
+    if (!hasPatch) return null;
+    return JSON.stringify(this.patchData, null, 2);
+  }
+};
