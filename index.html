@@ -768,7 +768,8 @@ const RULE_AUDITOR = {
       badge.classList.add(bgClass, textClass);
       badge.innerText = text;
     }
-  },addReport: function(level, category, message, source_path, local_target, patchCategory = null, patchObj = null) {
+  },
+    addReport: function(level, category, message, source_path, local_target, patchCategory = null, patchObj = null) {
     this.auditReport.push({ level, category, message, source_path, local_target });
 
     if (level === "LOGIC_UPDATE_REQUIRED") {
@@ -790,7 +791,11 @@ const RULE_AUDITOR = {
         if (Array.isArray(value)) {
           this.patchData[patchCategory][key] = value.slice();
         } else if (value && typeof value === 'object') {
-          if (!this.patchData[patchCategory][key] || typeof this.patchData[patchCategory][key] !== 'object' || Array.isArray(this.patchData[patchCategory][key])) {
+          if (
+            !this.patchData[patchCategory][key] ||
+            typeof this.patchData[patchCategory][key] !== 'object' ||
+            Array.isArray(this.patchData[patchCategory][key])
+          ) {
             this.patchData[patchCategory][key] = {};
           }
           Object.assign(this.patchData[patchCategory][key], value);
@@ -815,6 +820,7 @@ const RULE_AUDITOR = {
       const msg = [];
       if (missingInLocal.length > 0) msg.push(`缺漏 ${missingInLocal.length} 筆`);
       if (extraInLocal.length > 0) msg.push(`多出 ${extraInLocal.length} 筆`);
+
       this.addReport(
         "PATCHABLE",
         category,
@@ -978,8 +984,7 @@ const RULE_AUDITOR = {
       }
     }
   },
-
-  buildMaintainerPatch: function() {
+    buildMaintainerPatch: function() {
     let hasPatch = false;
 
     for (const k in this.patchData) {
