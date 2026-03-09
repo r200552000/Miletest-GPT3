@@ -655,3 +655,628 @@
     const DB_KEY = 'MILES_APP_V14_9'; 
     let currentResults = [];
     let plannerSelectedAssets = new Set(); 
+    // [注意：第一階段修復] 此處僅分離字典名稱與兌換夥伴。為免中斷現有流程，暫留 type='transfer' 與折算比例。Live+ 被誤算為有效哩程的下游污染問題，待第五/六段重構時徹底解決。
+    // --- 內建防禦、卡片定義與轉點字典 ---
+    const BUILTIN_DEFS = [
+      { id: 'hsbc_live', name: '匯豐 Live+', default: true },
+      { id: 'ctbc_ci_inf', name: '中信 華航璀璨', default: false },
+      { id: 'taishin_cx',name: '台新 國泰世界',default: true },
+      { id: 'hsbc_inf',  name: '匯豐 旅人無限',default: true },
+      { id: 'ctbc_ci',   name: '中信 華航鼎尊', default: true }
+    ];
+    
+    // [本段修正] 修正入倉目標為獨立「匯豐Live+積分」
+    const AUTO_ASSETS = {
+        'hsbc_live': { target: '匯豐Live+積分', type: 'transfer', ratio: 2, unitPoints:1, unitMiles:2 },
+        'hsbc_inf': { target: '匯豐 旅人積分', type: 'transfer', ratio: 1, unitPoints:1, unitMiles:1 },
+        'ctbc_ci': { target: '中華航空', type: 'airline', ratio: 1, unitPoints:1, unitMiles:1 },
+        'ctbc_ci_inf': { target: '中華航空', type: 'airline', ratio: 1, unitPoints:1, unitMiles:1 },
+        'taishin_cx': { target: '國泰航空', type: 'airline', ratio: 1, unitPoints:1, unitMiles:1 }
+    };
+
+    // [本段修正] Live+ 與旅人積分徹底分家，且 Live+ 嚴格限定 4 家航空，無飯店
+    const TRANSFER_DICT = {
+        '匯豐旅人積分': {
+            supported_partners: [
+                '中華航空', '長榮航空', '國泰航空(亞洲萬里通)', '新加坡航空', '日本航空(JAL)', '聯合航空(UA)', '卡達航空', 
+                '法國航空/荷蘭皇家航空', '加拿大航空', '越南航空', '海南航空', '亞洲航空(AirAsia)', 
+                '洲際酒店集團(IHG)', '雅高酒店集團(ALL Accor)', '萬豪旅享家(Marriott Bonvoy)'
+            ],
+            ratio: '1 點 = 1 哩/積分'
+        },
+        '匯豐Live+積分': {
+            supported_partners: [
+                '中華航空', '長榮航空', '國泰航空(亞洲萬里通)', '新加坡航空'
+            ],
+            ratio: '1 點 = 2 哩 (Live+ 專屬受限轉換池)'
+        }
+    };
+
+    const DEFAULT_BILLING = { hsbc:6, ctbc:15, taishin:20, other:1 };
+    
+    const LIVE_KEYWORDS = { 
+      'dining':['餐廳','吃飯','外送','ubereats','foodpanda','燒肉','火鍋','麻辣','壽司','日式','居酒屋','餐酒館','酒吧','咖啡','甜點','牛排','鐵板燒','拉麵','茶六','屋馬','乾杯','buffet','王品','享鴨','夏慕尼','西堤','石二鍋','陶板屋','青花驕','饗賓','饗饗','開飯','瓦城','鼎泰豐','海底撈','金大鋤','築間','壽司郎','藏壽司','爭鮮','吉兆','明壽司','金色三麥','春大直','貳樓','涓豆腐','hooters','勝田','麥當勞','星巴克','必勝客','達美樂','富王','文公館','教父牛排','山海樓','鹽之華','牡丹','logy','inita','ikea','莫凡彼','貴族世家'], 
+      'shop':['momo','pchome','蝦皮','shopee','amazon','ebay','露天','friday','gomaji','淘寶','uniqlo','zara','h&m','net','gu','nike','adidas','outlet','台北101','三井','微風','sogo','漢神','華泰','新光','skm','att','美麗華','南紡','統一時代','遠雄','京站','citylink','夢時代','lalaport','高島屋','中友','遠企','麗寶','比漾','大江','巨城','遠東','global mall','環球','義大','台茂','宏匯','義享','noke','大魯閣','明曜','bellavita','寶雅','無印良品','muji','屈臣氏','康是美','松本清','唐吉訶德'], 
+      'entertainment':['新光影城','威秀','國賓','秀泰','環球影城','迪士尼','吉卜力','樂天世界','legoland','safari','兒童新樂園','x park','小人國','六福村','海洋公園','麗寶樂園','劍湖山','九族','尚順','義大遊樂','巧虎','動物園','海生館','奇美博物館','小叮噹','野柳','埔心','飛牛','頑皮世界','美術館','日月潭','太平山','阿里山','大雪山','墾丁','森林遊樂區'] 
+    };
+    
+    const STRICT_ONLINE = ['flight_ci','flight_cx','flight_other']; 
+    const CTBC_BLOCK = ['全聯','px','全支付','7-11','711','全家','萊爾富','ok超商','繳費','etoro','wise','revolut','麥當勞','肯德基','漢堡王','摩斯'];
+    const HSBC_BLOCK_BASE = ['全聯','px','7-11','711','全家','萊爾富','ok超商','繳費','判決書','醫療','掛號','年費','手續費','賭博','麥當勞','肯德基'];
+    const HSBC_LIVE_BLOCK = ['全聯','px','7-11','711','全家','萊爾富','ok超商','繳費','判決書','醫療','掛號','年費','手續費','賭博'];
+    const TAISHIN_BLOCK = ['分期','全聯','px','7-11','711','全家','萊爾富','ok超商','繳費','國民年金','etag','三商美邦','麥當勞','肯德基'];
+
+    const ASIA_7_KEYWORDS = ['日本', '日幣', '日圓', 'jpy', 'tokyo', 'osaka', '新加坡', 'sgd', '馬來西亞', 'myr', '越南', 'vnd', '菲律賓', 'php', '印度', 'inr', '斯里蘭卡', 'lkr'];
+    const EU_UK_KEYWORDS = ['歐洲', '歐盟', '英國', '法國', '德國', '義大利', '西班牙', 'eur', 'gbp', 'london', 'paris'];
+
+    // === [新增] AI 規則稽核：單一真相來源 (Baseline) ===
+    const LOCAL_BASELINE_RULES = {
+        hsbc_live: {
+            baseRate: 0.0088,
+            bonusSelectRate: 0.03,
+            bonusTaskRate: 0.01,
+            bonusAsiaRate: 0.01,
+            capSelect: 29600,
+            capTask: 20000,
+            excludeRegions: ['EUR', 'GBP'],
+            excludeMobilePay: ['apple_pay', 'line_pay'],
+            blockLists: HSBC_LIVE_BLOCK,
+            keywordsDining: LIVE_KEYWORDS['dining'],
+            keywordsShop: LIVE_KEYWORDS['shop'],
+            keywordsEntertainment: LIVE_KEYWORDS['entertainment'],
+            keywordsAsia: ASIA_7_KEYWORDS
+        },
+        taishin_cx: {
+            baseRate: 22,
+            bonusRate: 5,
+            cap: 1000000,
+            blockLists: TAISHIN_BLOCK,
+            keywordGroups: []
+        },
+        ctbc_ci_inf: {
+            baseRate: 20,
+            bonusRate: 6.6,
+            cap: 600000,
+            blockLists: CTBC_BLOCK,
+            keywordGroups: []
+        },
+        ctbc_ci: {
+            baseRate: 18,
+            bonusRate: 6,
+            cap: 1440000,
+            blockLists: CTBC_BLOCK,
+            keywordGroups: []
+        },
+        hsbc_inf: {
+            baseRate: 18,
+            bonusRate: 10,
+            cap: 999999999,
+            blockLists: HSBC_BLOCK_BASE,
+            keywordGroups: []
+        }
+    };
+
+    const LOCAL_RULE_META = {
+      version: "2026-03-09-1700",
+      source: "embedded",
+      cards: {
+        hsbc_live: "2026-03-09",
+        taishin_cx: "2026-03-09",
+        ctbc_ci: "2026-03-09",
+        ctbc_ci_inf: "2026-03-09",
+        hsbc_inf: "2026-03-09"
+      }
+    };
+
+    // [本段修正] 純字串 URL，且 init() 僅負責抓取，UI 渲染移交 triggerSync
+    const HSBC_LIVE_ADAPTER = {
+        configUrl: "https://gist.githubusercontent.com/r200552000/bdced9d179ec50a9dde110732601f310/raw/f18af962ced6f0b12fbccc7697cecc8bdc805368/rules.json",
+        configUrl2: "https://gist.githubusercontent.com/r200552000/b13dba96ccd29a551c868da26230300f/raw/f5a449f244a5783b3f3339f9a394648528f6d42b/rules-2.json",
+        rulesCache: null,
+        rulesCache2: null,
+        init: async function() {
+            this.rulesCache = null;
+            this.rulesCache2 = null;
+            try {
+                const [res1, res2] = await Promise.all([
+                    fetch(this.configUrl).catch(() => null),
+                    fetch(this.configUrl2).catch(() => null)
+                ]);
+                if (res1 && res1.ok) this.rulesCache = await res1.json();
+                if (res2 && res2.ok) this.rulesCache2 = await res2.json();
+            } catch(e) {
+                console.warn("[HSBC_LIVE_ADAPTER] Failed to fetch rules:", e);
+            }
+        },
+        updateBadge: function(text, bgClass, textClass) {
+            const badge = document.getElementById('hsbc-adapter-status');
+            if (badge) {
+                badge.innerText = text;
+                badge.className = `badge ${bgClass} ${textClass} ms-2`;
+            }
+        }
+    };
+
+    // === [新增] AI 規則稽核：核心比對與覆寫引擎 ===
+    
+    /** 深層比對輔助函式 */
+    function isDeepEqual(obj1, obj2) {
+        if (obj1 === obj2) return true;
+        if (typeof obj1 !== 'object' || typeof obj2 !== 'object' || obj1 === null || obj2 === null) return false;
+        if (Array.isArray(obj1) !== Array.isArray(obj2)) return false;
+        
+        const keys1 = Object.keys(obj1);
+        const keys2 = Object.keys(obj2);
+        if (keys1.length !== keys2.length) return false;
+        
+        for (let key of keys1) {
+            if (!keys2.includes(key) || !isDeepEqual(obj1[key], obj2[key])) return false;
+        }
+        return true;
+    }
+
+    /** 嚴格安全 Deep Merge (null/undefined 忽略，確保 calc 不受汙染) */
+    function deepMergeRule(target, source) {
+        if (!source || typeof source !== 'object') return target;
+        for (const key in source) {
+            if (source[key] === null || source[key] === undefined) {
+                continue; 
+            }
+            if (Array.isArray(source[key])) {
+                target[key] = [...source[key]]; 
+            } else if (typeof source[key] === 'object') {
+                if (!target[key] || typeof target[key] !== 'object' || Array.isArray(target[key])) {
+                    target[key] = {};
+                }
+                deepMergeRule(target[key], source[key]); 
+            } else {
+                target[key] = source[key]; 
+            }
+        }
+        return target;
+    }
+
+    /** 取得生效中規則 (Baseline + Patch) */
+    function getMergedRuleConfig(cardId) {
+        const baseRule = LOCAL_BASELINE_RULES[cardId] ? JSON.parse(JSON.stringify(LOCAL_BASELINE_RULES[cardId])) : {};
+        let patch = {};
+        try {
+            const rawPatch = localStorage.getItem('RULE_OVERRIDE_V1');
+            if (rawPatch) {
+                const parsed = JSON.parse(rawPatch);
+                if (parsed && parsed.overrides && parsed.overrides[cardId]) {
+                    patch = parsed.overrides[cardId];
+                }
+            }
+        } catch(e) {}
+        return deepMergeRule(baseRule, patch);
+    }
+
+    /** 取得所有生效規則快照，供稽核使用 */
+    function getLocalRuleSnapshot() {
+        const snapshot = {};
+        for (const cardId of Object.keys(LOCAL_BASELINE_RULES)) {
+            snapshot[cardId] = getMergedRuleConfig(cardId);
+            snapshot[cardId].version = LOCAL_RULE_META.cards[cardId] || "unknown";
+        }
+        return snapshot;
+    }
+
+    /** 遠端 JSON 正規化 (嚴格三路徑探測 + 白名單) */
+    function normalizeRemoteRules(remote1, remote2) {
+        const normalized = {};
+        const findRoot = (obj) => {
+            if (!obj || typeof obj !== 'object') return null;
+            if (obj.hsbc_live || obj.taishin_cx) return obj;
+            if (obj.cards && (obj.cards.hsbc_live || obj.cards.taishin_cx)) return obj.cards;
+            if (obj.data && obj.data.cards && (obj.data.cards.hsbc_live || obj.data.cards.taishin_cx)) return obj.data.cards;
+            return null;
+        };
+
+        const root1 = findRoot(remote1) || {};
+        const root2 = findRoot(remote2) || {};
+        const mergedRemote = { ...root1, ...root2 };
+        const whitelist = [
+            'baseRate', 'bonusSelectRate', 'bonusTaskRate', 'bonusAsiaRate', 
+            'capSelect', 'capTask', 'excludeRegions', 'excludeMobilePay', 
+            'blockLists', 'keywordsDining', 'keywordsShop', 'keywordsEntertainment', 'keywordsAsia',
+            'bonusRate', 'cap', 'keywordGroups'
+        ];
+
+        for (const [cardId, data] of Object.entries(mergedRemote)) {
+            if (!LOCAL_BASELINE_RULES[cardId]) continue;
+            normalized[cardId] = { version: data.version || "unknown" };
+            
+            for (const key of whitelist) {
+                if (data[key] !== undefined && data[key] !== null) {
+                    if (Array.isArray(data[key])) {
+                        normalized[cardId][key] = [...data[key]];
+                    } else if (typeof data[key] === 'object') {
+                        normalized[cardId][key] = JSON.parse(JSON.stringify(data[key]));
+                    } else {
+                        normalized[cardId][key] = data[key];
+                    }
+                }
+            }
+        }
+        return normalized;
+    }
+
+    /** 嚴格深度稽核機制 (優先處理陣列比對，避免誤判 danger) */
+    function auditRules(localRules, remoteRules) {
+        let overallStatus = "ok";
+        let level = "success";
+        let issues = [];
+        let patch = { patchVersion: "V1_" + Date.now(), timestamp: Date.now(), overrides: {} };
+
+        for (const [cardId, remoteData] of Object.entries(remoteRules)) {
+            const localData = localRules[cardId];
+            if (!localData) continue;
+
+            let cardHasChanges = false;
+            let cardPatch = {};
+
+            for (const key in remoteData) {
+                if (key === 'version') continue;
+                
+                const remoteVal = remoteData[key];
+                const localVal = localData[key];
+
+                if (Array.isArray(remoteVal)) {
+                    const localArr = Array.isArray(localVal) ? localVal : [];
+                    const isSame = remoteVal.length === localArr.length && 
+                                   [...remoteVal].sort().join(',') === [...localArr].sort().join(',');
+                    if (!isSame) {
+                        issues.push(`⚠️ [${cardId}] ${key} 陣列條件已更新`);
+                        cardPatch[key] = remoteVal;
+                        cardHasChanges = true;
+                        if (level === "success") { level = "warning"; overallStatus = "warning"; }
+                    }
+                } else if (typeof remoteVal === 'object') {
+                    if (!isDeepEqual(remoteVal, localVal)) {
+                        issues.push(`🚨 [${cardId}] ${key} (複雜設定) 已更新`);
+                        cardPatch[key] = remoteVal; cardHasChanges = true;
+                        level = "danger"; overallStatus = "outdated";
+                    }
+                } else {
+                    if (remoteVal !== localVal) {
+                        issues.push(`🚨 [${cardId}] ${key} 數值更新：本地 ${localVal !== undefined ? localVal : '無'} -> 遠端 ${remoteVal}`);
+                        cardPatch[key] = remoteVal; cardHasChanges = true; 
+                        level = "danger"; overallStatus = "outdated";
+                    }
+                }
+            }
+            if (cardHasChanges) patch.overrides[cardId] = cardPatch;
+        }
+        return { overallStatus, level, issues, patch };
+    }
+
+    let lastAuditResult = null;
+
+    /** 狀態燈 UI 連動 */
+    function updateSyncIndicatorByAudit(auditResult, isAuto) {
+        const ind = document.getElementById('sync-indicator');
+        if(!ind) return;
+        ind.className = 'sync-dot me-2';
+        
+        if (auditResult.level === "success") {
+            ind.classList.add('sync-green'); ind.title = "規則同步正常 (點擊強制對齊)";
+            if (!isAuto) showCustomAlert('✅ 核心規則與遠端完全一致！');
+        } else if (auditResult.level === "warning") {
+            ind.classList.add('sync-yellow'); ind.title = "發現次要規則更新 (點擊查看)";
+            if (!isAuto) showRulesAuditReport();
+        } else {
+            ind.classList.add('sync-red'); ind.title = "規則已落後！點擊強制對齊！";
+            showRulesAuditReport(); 
+        }
+    }
+
+    /** 組裝 Patch 報表 UI */
+    function buildRulesPatchReport(auditResult) {
+        if (!auditResult) return "<div class='p-4 tdc-text-center'>無稽核資料</div>";
+        let issueHtml = auditResult.issues.length === 0 
+            ? "<div class='audit-item-row audit-ok fw-bold'>✅ 本地有效規則與遠端完全一致！</div>" 
+            : auditResult.issues.map(msg => `<div class='audit-item-row ${msg.includes('🚨') ? 'audit-danger fw-bold' : 'audit-warn'}'>${escapeHTML(msg)}</div>`).join('');
+        
+        let patchHtml = "";
+        if (Object.keys(auditResult.patch.overrides).length > 0) {
+            patchHtml = `
+            <div class='mt-3'>
+                <div class='fw-bold tdc-mb-1 small text-primary-dark'>📝 待套用 JSON Patch 增量預覽：</div>
+                <div class='audit-diff'>${escapeHTML(JSON.stringify(auditResult.patch.overrides, null, 2))}</div>
+            </div>`;
+        }
+
+        return `
+        <div class="p-3">
+            <div class="audit-box">
+                <div class="audit-title text-dark"><svg class="lucide me-1"><use href="#icon-shield"/></svg> 核心規則比對報告</div>
+                ${issueHtml}
+                ${patchHtml}
+            </div>
+            ${Object.keys(auditResult.patch.overrides).length > 0 ? `<button class='btn btn-danger tdc-w-100 rounded-pill fw-bold font-hand' onclick='confirmApplyRulesPatch()'>立即套用熱更新補丁</button>` : `<button class='btn btn-success tdc-w-100 rounded-pill fw-bold font-hand' data-bs-dismiss="modal">系統健康良好</button>`}
+        </div>`;
+    }
+
+    function showRulesAuditReport() {
+        if (!lastAuditResult) return;
+        const reportModalEl = document.getElementById('aiReportModal');
+        const contentBox = document.getElementById('ai-report-content');
+        const modalTitle = document.getElementById('ai-modal-title');
+        
+        modalTitle.innerHTML = `<svg class="me-2" style="width:20px;height:20px; color:#2563eb;"><use href="#icon-refresh"/></svg>規章稽核與熱更新`;
+        contentBox.innerHTML = buildRulesPatchReport(lastAuditResult);
+        new bootstrap.Modal(reportModalEl).show();
+    }
+
+    function confirmApplyRulesPatch() {
+        if (!lastAuditResult || Object.keys(lastAuditResult.patch.overrides).length === 0) return;
+        applyRuleOverrides(lastAuditResult.patch);
+        bootstrap.Modal.getInstance(document.getElementById('aiReportModal')).hide();
+        showCustomAlert('✅ 補丁已成功寫入，生效於後續計算！');
+        triggerSync(true); 
+    }
+
+    function applyRuleOverrides(patch) {
+        let existingPatch = { overrides: {} };
+        try {
+            const raw = localStorage.getItem('RULE_OVERRIDE_V1');
+            if (raw) existingPatch = JSON.parse(raw);
+        } catch(e) {}
+        
+        existingPatch.overrides = deepMergeRule(existingPatch.overrides, patch.overrides);
+        existingPatch.timestamp = Date.now();
+        localStorage.setItem('RULE_OVERRIDE_V1', JSON.stringify(existingPatch));
+    }
+
+    // ==========================================
+    // 1. 系統資料庫與基礎操作 (強型別防禦版)
+    // ==========================================
+    function loadDB() {
+        const raw = localStorage.getItem(DB_KEY);
+        const defaultDB = { settings: { enabledBuiltins: ['hsbc_live','taishin_cx','ctbc_ci','hsbc_inf','ctbc_ci_inf'], billingDays: { ...DEFAULT_BILLING }, hsbc_autopay: true }, customCards: [], records: {}, limits: {}, warehouse: [] };
+        if(!raw) return defaultDB;
+        try {
+            const db = JSON.parse(raw);
+            if(!db.records || typeof db.records !== 'object' || Array.isArray(db.records)) db.records = {};
+            if(!db.limits || typeof db.limits !== 'object' || Array.isArray(db.limits)) db.limits = {};
+            if(!Array.isArray(db.warehouse)) db.warehouse = [];
+            if(!Array.isArray(db.customCards)) db.customCards = [];
+            
+            if(!db.settings || typeof db.settings !== 'object' || Array.isArray(db.settings)) {
+                db.settings = defaultDB.settings;
+            } else {
+                if (!Array.isArray(db.settings.enabledBuiltins)) db.settings.enabledBuiltins = [...defaultDB.settings.enabledBuiltins];
+                if (typeof db.settings.hsbc_autopay !== 'boolean') db.settings.hsbc_autopay = true;
+                
+                if (typeof db.settings.billingDays === 'object' && db.settings.billingDays !== null && !Array.isArray(db.settings.billingDays)) {
+                    db.settings.billingDays = { ...defaultDB.settings.billingDays, ...db.settings.billingDays };
+                } else {
+                    db.settings.billingDays = { ...DEFAULT_BILLING };
+                }
+            }
+            return db;
+        } catch (e) {
+            console.error("資料庫解析失敗，已重置為預設狀態", e);
+            return defaultDB;
+        }
+    }
+    function saveDB(data) { localStorage.setItem(DB_KEY, JSON.stringify(data)); }
+
+    function escapeHTML(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+    
+    const formatMD = (str) => {
+        let safeStr = escapeHTML(str);
+        return safeStr.replace(/\*\*(.*?)\*\*/g, '<strong class="text-primary-dark">$1</strong>').replace(/\n/g, '<br>');
+    };
+
+    function showCustomAlert(msg) { document.getElementById('alert-msg').innerText = msg; new bootstrap.Modal(document.getElementById('customAlertModal')).show(); }
+
+    function switchPage(p, btn) {
+        document.querySelectorAll('.page-section').forEach(e => e.style.display='none');
+        document.getElementById(`page-${p}`).style.display='block';
+        document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active')); btn.classList.add('active');
+        if(p==='warehouse') switchWarehouseTab('planner');
+        if(p==='status') renderStatus();
+        if(p==='list') renderList(); 
+        window.scrollTo(0,0);
+    }
+    
+    function switchWarehouseTab(view) {
+        document.getElementById('warehouse-view-manage').style.display = (view === 'manage' ? 'block' : 'none');
+        document.getElementById('warehouse-view-planner').style.display = (view === 'planner' ? 'block' : 'none');
+        const btnManage = document.getElementById('tab-btn-manage'); const btnPlanner = document.getElementById('tab-btn-planner');
+        if (view === 'manage') {
+            btnManage.style.background = '#ffffff'; btnManage.style.color = 'var(--primary-dark)'; btnManage.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+            btnPlanner.style.background = 'transparent'; btnPlanner.style.color = 'inherit'; btnPlanner.style.boxShadow = 'none';
+            if (typeof renderWarehouse === "function") renderWarehouse();
+        } else {
+            btnPlanner.style.background = '#ffffff'; btnPlanner.style.color = 'var(--primary-dark)'; btnPlanner.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+            btnManage.style.background = 'transparent'; btnManage.style.color = 'inherit'; btnManage.style.boxShadow = 'none';
+        }
+    }
+
+    function clearInput(id) { const el = document.getElementById(id); el.value = ''; el.focus(); checkInputStyle(el); if(id === 'fx-rate-input') updateFxFeedback(); }
+    function toggleNegative(id) { 
+        const el = document.getElementById(id); let val = parseFloat(el.value);
+        if(isNaN(val)) val = 0; el.value = val === 0 ? '-' : (val * -1); checkInputStyle(el);
+    }
+    function checkInputStyle(el) {
+        const val = parseFloat(el.value);
+        if(val < 0) { el.classList.add('input-negative'); } else { el.classList.remove('input-negative'); }
+    }
+    
+    function toggleFxInput(val) { 
+        document.getElementById('fx-input-group').style.display = (val === 'FOREIGN') ? 'block' : 'none'; 
+        document.getElementById('amount-label').innerHTML = (val === 'FOREIGN') ? '🌎 外幣消費金額' : '🇹🇼 消費金額 (TWD)';
+    }
+    
+    function updateFxFeedback() {
+        const inputVal = document.getElementById('fx-rate-input').value;
+        const feedbackBlock = document.getElementById('fx-feedback');
+        const realRateSpan = document.getElementById('fx-real-rate');
+        
+        if (inputVal && !isNaN(inputVal) && parseFloat(inputVal) > 0) {
+            const realRate = parseFloat(inputVal) * 1.015;
+            realRateSpan.innerText = realRate.toFixed(4);
+            feedbackBlock.style.display = 'block';
+        } else {
+            feedbackBlock.style.display = 'none';
+        }
+    }
+
+    function updateKeywordPlaceholder() {
+        const cat = document.getElementById('category').value;
+        const input = document.getElementById('keyword-input');
+        if(cat === 'flight_ci' || cat === 'flight_cx' || cat === 'flight_other') input.placeholder = '可留空或輸入航線 (如: TPE-NRT)';
+        else input.placeholder = '輸入店家關鍵字 (如: 麥當勞, Agoda, JPY, 日本)...';
+    }
+    function goToSettingsFromAI() { bootstrap.Modal.getInstance(document.getElementById('aiIntroModal')).hide(); setTimeout(openSettings, 400); }
+
+    // [本段修正] 職責明確切分：統一管理抓取、比對與 Offline 第五態 (包含空物件攔截與清空舊報表)
+    async function triggerSync(isAuto = false) {
+        const ind = document.getElementById('sync-indicator');
+        if (ind) {
+            ind.className = 'sync-dot sync-yellow me-2';
+            ind.title = '同步中...';
+        }
+        HSBC_LIVE_ADAPTER.updateBadge("Live+ Adapter: Syncing...", "bg-warning", "text-dark");
+        
+        await HSBC_LIVE_ADAPTER.init(); 
+        
+        let isOffline = false;
+        let offlineMsg = "無法取得遠端規則，維持本地基準運作。";
+
+        if (HSBC_LIVE_ADAPTER.rulesCache || HSBC_LIVE_ADAPTER.rulesCache2) {
+            const remoteNormalized = normalizeRemoteRules(HSBC_LIVE_ADAPTER.rulesCache, HSBC_LIVE_ADAPTER.rulesCache2);
+            if (Object.keys(remoteNormalized).length === 0) {
+                isOffline = true;
+                offlineMsg = "遠端規則格式不符，維持本地基準運作。";
+            } else {
+                HSBC_LIVE_ADAPTER.updateBadge("Live+ Adapter: Active", "bg-success", "text-white");
+                const localSnapshot = getLocalRuleSnapshot();
+                lastAuditResult = auditRules(localSnapshot, remoteNormalized);
+                updateSyncIndicatorByAudit(lastAuditResult, isAuto);
+            }
+        } else {
+            isOffline = true;
+        }
+
+        if (isOffline) {
+            lastAuditResult = null;
+            if (ind) {
+                ind.className = 'sync-dot bg-secondary me-2';
+                ind.title = offlineMsg;
+            }
+            HSBC_LIVE_ADAPTER.updateBadge('Live+ Adapter: Offline', 'bg-secondary', 'text-white');
+            if (!isAuto) showCustomAlert(offlineMsg);
+        }
+    }
+
+    function exportDataMagic() {
+        const db = localStorage.getItem(DB_KEY) || '{}'; const b64 = btoa(unescape(encodeURIComponent(db)));
+        if (navigator.clipboard) { navigator.clipboard.writeText(b64).then(() => showCustomAlert('✅ 搬家代碼已成功複製！請妥善保存。')); } 
+        else { prompt('請全選並複製以下代碼：', b64); }
+    }
+    function triggerRestoreFlow() {
+        bootstrap.Modal.getInstance(document.getElementById('settingsModal')).hide();
+        setTimeout(() => { document.body.classList.add('confirm-modal-open'); new bootstrap.Modal(document.getElementById('customConfirmModal')).show(); }, 400);
+    }
+    function hideConfirmModal() {
+        bootstrap.Modal.getInstance(document.getElementById('customConfirmModal')).hide();
+        document.body.classList.remove('confirm-modal-open');
+    }
+    document.getElementById('confirm-restore-btn').addEventListener('click', () => {
+        hideConfirmModal();
+        setTimeout(() => {
+            const code = prompt("請貼上您的還原代碼 (Base64)：");
+            if(code) {
+                try {
+                    const decoded = decodeURIComponent(escape(atob(code.trim()))); JSON.parse(decoded); localStorage.setItem(DB_KEY, decoded);
+                    alert("🎉 資料還原成功！系統即將重新整理。"); location.reload();
+                } catch(e) { showCustomAlert("❌ 無效的還原代碼！請確認您有完整複製。"); }
+            }
+        }, 400);
+    });
+
+    function renderSettingsCards() {
+        const db = loadDB();
+        
+        const builtinCon = document.getElementById('builtin-cards-list'); if(!builtinCon) return;
+        builtinCon.innerHTML = '';
+        BUILTIN_DEFS.forEach(def => {
+            const isChecked = (db.settings.enabledBuiltins || []).includes(def.id) ? 'checked' : '';
+            builtinCon.innerHTML += `<label class="switch-group tdc-mb-2"><span class="switch-label">${def.name}</span><input class="form-check-input" type="checkbox" onchange="toggleBuiltin('${def.id}', this.checked)" ${isChecked}></label>`;
+        });
+
+        const customCon = document.getElementById('custom-cards-list'); if(!customCon) return;
+        customCon.innerHTML = '';
+        (db.customCards || []).forEach((c, i) => {
+            if (!c || typeof c !== 'object') return;
+            let limitStr = (c.limitAmt && c.limitAmt > 0) ? `上限$${c.limitAmt.toLocaleString()}` : '無上限';
+            let cycleStr = c.isAnnual ? '年度結算' : `每月${c.billingDay||1}日結`;
+            customCon.innerHTML += `<div class="custom-card-item"><div class="fw-bold text-dark">${escapeHTML(c.name)} <span class="small text-muted ms-2">國$${c.domRate}/外$${c.forRate} (${limitStr}/${cycleStr})</span></div><button class="btn btn-sm btn-outline-danger border-0 p-1" onclick="delCustomCard(${i})"><svg class="lucide"><use href="#icon-trash"/></svg></button></div>`;
+        });
+
+        const bDayCon = document.getElementById('billing-days-container');
+        if(bDayCon) {
+            let bHtml = '';
+            BUILTIN_DEFS.forEach(def => {
+                if((db.settings.enabledBuiltins || []).includes(def.id)) {
+                    if(['taishin_cx', 'ctbc_ci', 'ctbc_ci_inf'].includes(def.id)) {
+                        bHtml += `<div class="tdc-flex tdc-justify-between tdc-align-center tdc-mb-2"><span class="small fw-bold text-dark">${def.name}</span><span class="badge bg-secondary">年度結算</span></div>`;
+                    } else {
+                        let currentDay = db.settings.billingDays[def.id] || db.settings.billingDays[def.id.split('_')[0]] || 1;
+                        bHtml += `<div class="tdc-flex tdc-justify-between tdc-align-center tdc-mb-2"><span class="small fw-bold text-dark">${def.name}</span><select class="form-select form-select-sm w-auto rounded-pill" style="border-width: 2px;" onchange="updateBillingDay('${def.id}', this.value)">${Array.from({length:31}, (_, i)=>`<option value="${i+1}" ${i+1===currentDay?'selected':''}>每月 ${i+1} 日</option>`).join('')}</select></div>`;
+                    }
+                }
+            });
+            (db.customCards || []).forEach(c => {
+                if (!c || typeof c !== 'object') return;
+                if(c.isAnnual) {
+                    bHtml += `<div class="tdc-flex tdc-justify-between tdc-align-center tdc-mb-2"><span class="small fw-bold text-dark">${escapeHTML(c.name)}</span><span class="badge bg-secondary">年度結算</span></div>`;
+                } else {
+                    let currentDay = c.billingDay || 1;
+                    bHtml += `<div class="tdc-flex tdc-justify-between tdc-align-center tdc-mb-2"><span class="small fw-bold text-dark">${escapeHTML(c.name)}</span><select class="form-select form-select-sm w-auto rounded-pill" style="border-width: 2px;" onchange="updateCustomBillingDay('${c.id}', this.value)">${Array.from({length:31}, (_, i)=>`<option value="${i+1}" ${i+1===currentDay?'selected':''}>每月 ${i+1} 日</option>`).join('')}</select></div>`;
+                }
+            });
+            bDayCon.innerHTML = bHtml || '<div class="text-muted small">尚未啟用任何卡片</div>';
+        }
+    }
+
+    function toggleBuiltin(id, isEnabled) { const db = loadDB(); if(isEnabled && !db.settings.enabledBuiltins.includes(id)) db.settings.enabledBuiltins.push(id); else if(!isEnabled) db.settings.enabledBuiltins = db.settings.enabledBuiltins.filter(x => x !== id); saveDB(db); renderSettingsCards(); }
+    function updateBillingDay(id, day) { const db = loadDB(); if(!db.settings.billingDays) db.settings.billingDays={}; db.settings.billingDays[id] = parseInt(day); saveDB(db); }
+    function updateCustomBillingDay(id, day) { const db = loadDB(); const c = db.customCards.find(x=>x&&x.id===id); if(c) c.billingDay = parseInt(day); saveDB(db); }
+    
+    function addCustomCard() { 
+        const name = prompt('自訂卡片名稱：'); if(!name) return; 
+        const dom = parseFloat(prompt('國內 $X/哩：', '10')); 
+        const fgn = parseFloat(prompt('海外 $X/哩：', '10')); 
+        if(isNaN(dom) || dom <= 0 || isNaN(fgn) || fgn <= 0) return alert('❌ 錯誤：兌換率必須是大於 0 的有效數字！');
+        let limitAmt = parseFloat(prompt('請輸入此卡的回饋/刷卡上限金額 (TWD)：\n(若無上限請輸入 0)', '0'));
+        if(isNaN(limitAmt) || limitAmt < 0) limitAmt = 0;
+
+        const isAnnual = confirm('【上限類型確認】\n這張自訂卡片是「年度回饋上限」嗎？\n\n• 按「確定」：設為年度歸零\n• 按「取消」：設為每月結帳日歸零');
+        let bDay = 1;
+        if (!isAnnual) {
+            bDay = parseInt(prompt('請輸入卡片結帳日 (1~31)：', '1'));
+            if(isNaN(bDay) || bDay < 1 || bDay > 31) return alert('輸入無效，請確認數字格式及範圍 (1-31)'); 
+        }
+
+        const db = loadDB(); 
+        db.customCards.push({ id: `custom_${Date.now()}`, name, domRate: dom, forRate: fgn, billingDay: bDay, isAnnual: isAnnual, limitAmt: limitAmt }); 
+        saveDB(db); renderSettingsCards(); 
+    }
+    
+    function delCustomCard(idx) { if(confirm('確定刪除這張自訂卡片？')) { const db = loadDB(); db.customCards.splice(idx, 1); saveDB(db); renderSettingsCards(); } }
+    function openSettings() { document.getElementById('gemini-key').value = localStorage.getItem('GEMINI_API_KEY') || ''; document.getElementById('github-token').value = localStorage.getItem('GITHUB_GIST_TOKEN') || ''; document.getElementById('setting-hsbc-autopay').checked = loadDB().settings.hsbc_autopay; renderSettingsCards(); new bootstrap.Modal(document.getElementById('settingsModal')).show(); }
+    function saveSettings() { const key = document.getElementById('gemini-key').value.trim(); const git = document.getElementById('github-token').value.trim(); if(key) localStorage.setItem('GEMINI_API_KEY', key); else localStorage.removeItem('GEMINI_API_KEY'); if(git) localStorage.setItem('GITHUB_GIST_TOKEN', git); else localStorage.removeItem('GITHUB_GIST_TOKEN'); const db = loadDB(); db.settings.hsbc_autopay = document.getElementById('setting-hsbc-autopay').checked; saveDB(db); bootstrap.Modal.getInstance(document.getElementById('settingsModal')).hide(); showCustomAlert("✅ 系統設定已更新"); triggerSync(); }
+    function openGuide() { new bootstrap.Modal(document.getElementById('guideModal')).show(); }
