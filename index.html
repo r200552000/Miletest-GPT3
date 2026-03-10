@@ -665,9 +665,8 @@
             RULES_DB = {
                 ui_categories: [
                     { id: "general", label: "🛍️ 一般消費" },
-                    { id: "dining_street", label: "🍽️ 餐廳｜街邊店" },
-                    { id: "dining_chain", label: "🍽️ 餐廳｜連鎖餐飲" },
-                    { id: "dining_department_foodcourt", label: "🍽️ 餐廳｜百貨美食街/百貨餐飲" },
+                    { id: "dining_general", label: "🍽️ 一般餐廳" },
+                    { id: "dining_department_foodcourt", label: "🍽️ 百貨美食街/百貨餐飲" },
                     { id: "dining_hotel", label: "🏨 飯店內餐廳" },
                     { id: "delivery", label: "🛵 外送平台" },
                     { id: "department_store", label: "🏬 百貨公司/商場" },
@@ -704,19 +703,12 @@
     }
 
     function mapCategoryGroup(cat) {
-    if ([
-        'dining_street',
-        'dining_chain',
-        'dining_department_foodcourt',
-        'delivery'
-    ].includes(cat)) return 'dining';
-    if (cat === 'dining_hotel') return 'travel';
-    if (['department_store','shopping_online'].includes(cat)) return 'shopping';
-    if (cat === 'entertainment') return 'entertainment';
-    if (cat === 'travel') return 'travel';
-    if (['flight_ci','flight_cx','flight_other'].includes(cat)) return 'flight';
-    return 'general';
-}
+        if (['dining_general', 'dining_street', 'dining_chain', 'dining_department_foodcourt', 'delivery'].includes(cat)) return 'dining';
+        if (['department_store', 'shopping_online'].includes(cat)) return 'shopping';
+        if (cat === 'entertainment') return 'entertainment';
+        if (cat === 'travel') return 'travel';
+        if (['flight_ci', 'flight_cx', 'flight_other'].includes(cat)) return 'flight';
+        return 'general';
     }
 
     function isDiningCategory(ctx){
@@ -908,6 +900,7 @@
         const ind = document.getElementById('sync-indicator');
         const adapterBadge = document.getElementById('hsbc-adapter-status');
         
+        // 狀態 1：同步中
         ind.className = 'sync-dot sync-yellow me-2';
         if (adapterBadge) {
             adapterBadge.innerText = 'Rules: Syncing...';
@@ -918,12 +911,14 @@
         renderCategorySelect();
         
         if (status.ok && status.mode === "remote") {
+            // 狀態 2：連線成功
             ind.className = 'sync-dot sync-green me-2';
             if (adapterBadge) {
                 adapterBadge.innerText = 'Rules: Active';
                 adapterBadge.className = 'badge bg-success text-white ms-2';
             }
         } else {
+            // 狀態 3：降級備援
             ind.className = 'sync-dot sync-red me-2';
             if (adapterBadge) {
                 adapterBadge.innerText = 'Rules: Fallback';
@@ -1240,9 +1235,6 @@
         }
     };
 
-    // ==========================================
-    // 4. 主計算邏輯與記帳系統
-    // ==========================================
     function calculate() {
         const db = loadDB(); const amt = parseFloat(document.getElementById('amount').value);
         if(isNaN(amt) || amt === 0) return showCustomAlert('請輸入消費金額！');
@@ -1291,8 +1283,13 @@
             isForeign: isForeign, isEUR: isEUPhysical, twdBase: twdBase, twdSpend: twdSpend, isLiveSelect: false
         };
 
-        if(isDiningCategory(ctx)) ctx.isLiveSelect = true;
-        else if(LIVE_KEYWORDS['dining'].some(w => ctx.kwKey.includes(w)) || LIVE_KEYWORDS['shop'].some(w => ctx.kwKey.includes(w)) || LIVE_KEYWORDS['entertainment'].some(w => ctx.kwKey.includes(w))) ctx.isLiveSelect = true;
+        if (isDiningCategory(ctx)) {
+            ctx.isLiveSelect = true;
+        } else if (ctx.cat !== 'dining_hotel' && LIVE_KEYWORDS['dining'].some(w => ctx.kwKey.includes(w))) {
+            ctx.isLiveSelect = true;
+        } else if (LIVE_KEYWORDS['shop'].some(w => ctx.kwKey.includes(w)) || LIVE_KEYWORDS['entertainment'].some(w => ctx.kwKey.includes(w))) {
+            ctx.isLiveSelect = true;
+        }
         
         currentResults = [];
         db.settings.enabledBuiltins.forEach(cardId => {
