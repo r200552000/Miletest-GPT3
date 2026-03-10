@@ -704,12 +704,19 @@
     }
 
     function mapCategoryGroup(cat) {
-        if (['dining_street', 'dining_chain', 'dining_department_foodcourt', 'dining_hotel', 'delivery'].includes(cat)) return 'dining';
-        if (['department_store', 'shopping_online'].includes(cat)) return 'shopping';
-        if (cat === 'entertainment') return 'entertainment';
-        if (cat === 'travel') return 'travel';
-        if (['flight_ci', 'flight_cx', 'flight_other'].includes(cat)) return 'flight';
-        return 'general';
+    if ([
+        'dining_street',
+        'dining_chain',
+        'dining_department_foodcourt',
+        'delivery'
+    ].includes(cat)) return 'dining';
+    if (cat === 'dining_hotel') return 'travel';
+    if (['department_store','shopping_online'].includes(cat)) return 'shopping';
+    if (cat === 'entertainment') return 'entertainment';
+    if (cat === 'travel') return 'travel';
+    if (['flight_ci','flight_cx','flight_other'].includes(cat)) return 'flight';
+    return 'general';
+}
     }
 
     function isDiningCategory(ctx){
