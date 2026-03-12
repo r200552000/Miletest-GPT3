@@ -1724,7 +1724,7 @@
         document.getElementById('edit-limit-val').value = '';
         new bootstrap.Modal(document.getElementById('editLimitModal')).show();
     }
-    // ==========================================
+        // ==========================================
     // 6. 倉庫管理 2.0 (三位一體)
     // ==========================================
     function renderWarehouse() {
@@ -1842,11 +1842,21 @@
         const db = loadDB(); 
 
         const normalizeStr = (str) => typeof str === 'string' ? str.replace(/\s+/g, '').toLowerCase() : '';
-        const normName = normalizeStr(name);
         
-        let sourceAsset = db.warehouse.find(a => a && typeof a === 'object' && (a.type === 'transfer' || a.type === 'raw') && a.name === name);
+        const rawNormName = normalizeStr(name);
+        const SOURCE_ALIAS_MAP = {
+            [normalizeStr('匯豐旅人')]: '匯豐 旅人積分',
+            [normalizeStr('匯豐旅人積分')]: '匯豐 旅人積分',
+            [normalizeStr('匯豐Live+')]: '匯豐Live+積分',
+            [normalizeStr('匯豐Live+積分')]: '匯豐Live+積分'
+        };
+        
+        let finalSourceName = SOURCE_ALIAS_MAP[rawNormName] || name;
+        let finalNormSourceName = normalizeStr(finalSourceName);
+        
+        let sourceAsset = db.warehouse.find(a => a && typeof a === 'object' && (a.type === 'transfer' || a.type === 'raw') && a.name === finalSourceName);
         if(!sourceAsset) {
-            sourceAsset = db.warehouse.find(a => a && typeof a === 'object' && (a.type === 'transfer' || a.type === 'raw') && normalizeStr(a.name) === normName);
+            sourceAsset = db.warehouse.find(a => a && typeof a === 'object' && (a.type === 'transfer' || a.type === 'raw') && normalizeStr(a.name) === finalNormSourceName);
         }
         
         if(!sourceAsset) {
