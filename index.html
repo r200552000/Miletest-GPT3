@@ -170,7 +170,7 @@
     <symbol id="icon-plane" viewBox="0 0 24 24"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-.5-.5-2.5 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.2-1.1.6L3 8l6 4-3 3-3-1-2 2 4 4 2-2-1-3 3-3 4 6 1.2-.7c.4-.2.7-.6.6-1.1z"/></symbol>
     <symbol id="icon-book" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></symbol>
     <symbol id="icon-gear" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1-1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
-    <symbol id="icon-cake" viewBox="0 0 24 24"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5-2 4-2 2.5-2 4-2 2.5-2 4-2 2.5-2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M7 8v3"/><path d="M12 8v3"/><path d="M17 8v3"/><path d="M7 4h.01"/><path d="M12 4h.01"/><path d="M17 4h.01"/></symbol>
+    <symbol id="icon-cake" viewBox="0 0 24 24"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5-2 4-2 2.5-2 4-2 2.5-2 4-2 2.5-2 4-2 2.5-2 4-2 2.5-2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M7 8v3"/><path d="M12 8v3"/><path d="M17 8v3"/><path d="M7 4h.01"/><path d="M12 4h.01"/><path d="M17 4h.01"/></symbol>
     <symbol id="icon-ticket" viewBox="0 0 24 24"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></symbol>
     <symbol id="icon-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
     <symbol id="icon-calc" viewBox="0 0 24 24"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/></symbol>
@@ -255,22 +255,34 @@
 
         <div id="fx-input-group" class="mt-2 tdc-mb-2 p-3" style="background: #f0f9ff; border: 2px dashed #bae6fd; border-radius: 16px; display: none;">
             <div class="tdc-flex tdc-justify-between tdc-align-center tdc-mb-2">
-                <label class="form-label text-primary small tdc-m-0">當下匯率 (牌告匯率)</label>
-                <a href="https://rate.bot.com.tw/xrt?Lang=zh-TW" target="_blank" class="small fw-bold tdc-flex tdc-align-center text-primary-dark"><svg class="lucide me-1" style="width:14px;height:14px;"><use href="#icon-external"/></svg> 台銀牌告匯率</a>
+                <label class="form-label text-primary small tdc-m-0">設定外幣與匯率</label>
+                <a href="https://rate.bot.com.tw/xrt?Lang=zh-TW" target="_blank" class="small fw-bold tdc-flex tdc-align-center text-primary-dark"><svg class="lucide me-1" style="width:14px;height:14px;"><use href="#icon-external"/></svg> 牌告匯率參考</a>
             </div>
-            <div class="tdc-flex tdc-align-center gap-2 tdc-mb-1">
+            <div class="tdc-row tdc-mb-2">
+                <div class="tdc-col-5">
+                    <div class="input-wrapper">
+                        <input type="text" id="fx-currency-code" class="form-control text-center fw-bold" placeholder="如: JPY" maxlength="3" oninput="this.value = this.value.toUpperCase(); updateCurrencyLabel();">
+                    </div>
+                </div>
+                <div class="tdc-col-7">
+                    <button class="btn btn-outline-primary tdc-w-100 h-100 fw-bold rounded-pill" type="button" onclick="autoFetchFxRate()" id="btn-fetch-fx">
+                        <svg class="lucide me-1" style="width:16px;height:16px;"><use href="#icon-refresh"/></svg>自動帶入匯率
+                    </button>
+                </div>
+            </div>
+            <div class="tdc-flex tdc-align-center gap-2 tdc-mb-1 mt-2">
                 <span class="fw-bold text-secondary" style="white-space: nowrap;">1 外幣 =</span>
                 <div class="input-wrapper tdc-grow-1">
-                    <input type="number" id="fx-rate-input" class="form-control pe-5" placeholder=" " inputmode="decimal" min="0" step="0.0001" oninput="updateFxFeedback()">
+                    <input type="number" id="fx-rate-input" class="form-control pe-5" placeholder="可手動修改" inputmode="decimal" min="0" step="0.0001" oninput="updateFxFeedback(true)">
                     <button class="btn-inline-clear" type="button" onclick="clearInput('fx-rate-input')">⊗</button>
                 </div>
                 <span class="fw-bold text-secondary">TWD</span>
             </div>
             <div id="fx-feedback" class="small fw-bold mt-2" style="color: #ef4444; display: none;">
                 💡 實質匯率 (含1.5%)：<span id="fx-real-rate">0</span>
+                <span id="fx-manual-warning" class="text-warning ms-2" style="display:none;">(✏️ 已手動覆寫匯率)</span>
             </div>
         </div>
-
         <div class="tdc-mb-3 mt-3">
           <label class="form-label" id="amount-label">🇹🇼 消費金額 (TWD)</label>
           <div class="input-wrapper">
@@ -629,7 +641,7 @@
     </div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://gist.githubusercontent.com/r200552000/b13dba96ccd29a551c868da26230300f/raw/532ba59bdc4ae5bd9ede916bca1dcf49a3b60854/ai_strategy_rules.js"></script>
+  <script src="https://gist.githubusercontent.com/r200552000/b13dba96ccd29a551c868da26230300f/raw/ai_strategy_rules.js"></script>
 
   <script>
     /* ==========================================
@@ -994,7 +1006,7 @@
         }
     }
 
-    function clearInput(id) { const el = document.getElementById(id); el.value = ''; el.focus(); checkInputStyle(el); if(id === 'fx-rate-input') updateFxFeedback(); }
+    function clearInput(id) { const el = document.getElementById(id); el.value = ''; el.focus(); checkInputStyle(el); if(id === 'fx-rate-input') updateFxFeedback(true); }
     function toggleNegative(id) { 
         const el = document.getElementById(id); let val = parseFloat(el.value);
         if(isNaN(val)) val = 0; el.value = val === 0 ? '-' : (val * -1); checkInputStyle(el);
@@ -1003,23 +1015,86 @@
         const val = parseFloat(el.value);
         if(val < 0) { el.classList.add('input-negative'); } else { el.classList.remove('input-negative'); }
     }
-    
-    function toggleFxInput(val) { 
-        document.getElementById('fx-input-group').style.display = (val === 'FOREIGN') ? 'block' : 'none'; 
-        document.getElementById('amount-label').innerHTML = (val === 'FOREIGN') ? '🌎 外幣消費金額' : '🇹🇼 消費金額 (TWD)';
+    let lastFetchedRate = null;
+
+    function updateCurrencyLabel() {
+        const code = document.getElementById('fx-currency-code').value.trim().toUpperCase();
+        if (code) localStorage.setItem('LAST_FX_CODE', code);
+        const currType = document.getElementById('currency-type').value;
+        if (currType === 'FOREIGN') {
+            document.getElementById('amount-label').innerHTML = `🌎 消費金額 (${code || '外幣'})`;
+        }
     }
-    
-    function updateFxFeedback() {
+
+    function toggleFxInput(val) {
+        document.getElementById('fx-input-group').style.display = (val === 'FOREIGN') ? 'block' : 'none';
+        if (val === 'FOREIGN') {
+            const savedCode = localStorage.getItem('LAST_FX_CODE') || '';
+            if (savedCode && !document.getElementById('fx-currency-code').value) {
+                document.getElementById('fx-currency-code').value = savedCode;
+            }
+            updateCurrencyLabel();
+        } else {
+            document.getElementById('amount-label').innerHTML = '🇹🇼 消費金額 (TWD)';
+        }
+    }
+
+    function updateFxFeedback(isManual = false) {
         const inputVal = document.getElementById('fx-rate-input').value;
         const feedbackBlock = document.getElementById('fx-feedback');
         const realRateSpan = document.getElementById('fx-real-rate');
-        
+        const warningSpan = document.getElementById('fx-manual-warning');
+
         if (inputVal && !isNaN(inputVal) && parseFloat(inputVal) > 0) {
             const realRate = parseFloat(inputVal) * 1.015;
             realRateSpan.innerText = realRate.toFixed(4);
             feedbackBlock.style.display = 'block';
+
+            if (isManual && lastFetchedRate !== null && parseFloat(inputVal) !== lastFetchedRate) {
+                warningSpan.style.display = 'inline';
+            } else {
+                warningSpan.style.display = 'none';
+            }
         } else {
             feedbackBlock.style.display = 'none';
+            warningSpan.style.display = 'none';
+        }
+    }
+
+    async function autoFetchFxRate() {
+        const codeInput = document.getElementById('fx-currency-code').value.trim().toUpperCase();
+        const btn = document.getElementById('btn-fetch-fx');
+        if (!codeInput || codeInput.length !== 3) return showCustomAlert('請先輸入 3 碼外幣代碼 (例如：JPY、USD)');
+        if (codeInput === 'TWD') return showCustomAlert('台幣不需要抓取匯率！');
+
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>抓取中';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch(`https://open.er-api.com/v6/latest/${codeInput}`);
+            if (!res.ok) throw new Error('API 異常');
+            const data = await res.json();
+
+            if (data && data.rates && data.rates['TWD']) {
+                const rateInput = document.getElementById('fx-rate-input');
+                const rate = data.rates['TWD'];
+                rateInput.value = rate.toFixed(4);
+                lastFetchedRate = parseFloat(rate.toFixed(4));
+                updateFxFeedback(false);
+
+                rateInput.style.transition = '0.3s';
+                rateInput.style.backgroundColor = '#dcfce7';
+                setTimeout(() => rateInput.style.backgroundColor = '#fff', 800);
+            } else {
+                throw new Error('查無此幣別');
+            }
+        } catch (err) {
+            console.warn(err);
+            showCustomAlert(`抓取失敗 (${codeInput})，請檢查代碼或直接手動輸入牌告匯率。`);
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
         }
     }
 
@@ -1244,7 +1319,8 @@
                 if (blk.hsbc_live.some(w => ctx.kwKey.includes(w))) return { miles:0, note: '<span class="text-danger">🚫 非回饋項目</span>', consumedQuota:0 }; 
                 if (['apple_pay','line_pay'].includes(ctx.pay)) return { miles:0, note: '🚫 綁定行動支付無加碼', consumedQuota:0 }; 
 
-                let isAsian7 = ctx.isForeign && kw.asia_7.some(w => ctx.kwKey.includes(w));
+                let isAsian7Code = ctx.isForeign && ctx.currencyCode && ['JPY','SGD','MYR','VND','PHP','INR','LKR'].includes(ctx.currencyCode);
+                let isAsian7 = isAsian7Code || (ctx.isForeign && kw.asia_7.some(w => ctx.kwKey.includes(w)));
                 let displayType = '一般 0.88%'; 
                 let basePts = ctx.twdBase * 0.0088; 
                 let bonusPts = 0;
@@ -1427,16 +1503,17 @@
         }
 
         const kwKey = (document.getElementById('keyword-input').value || '').trim().toLowerCase();
+        const currencyCode = (document.getElementById('fx-currency-code') ? document.getElementById('fx-currency-code').value.trim().toUpperCase() : '');
         const isForeign = (currType === 'FOREIGN');
         const payMethod = document.getElementById('payment').value;
-        
+
         // [維護者註解] (Step 1 外掛化) 統一從遠端設定讀取全域關鍵字，判斷歐盟/英國實體防護網與 Live+ 精選。
         const kwConfig = getKeywordsConfig();
-        const isEUPhysical = isForeign && payMethod !== 'online' && kwConfig.eu_uk.some(w => kwKey.includes(w));
+        const isEUPhysical = isForeign && payMethod !== 'online' && ((currencyCode && ['EUR','GBP'].includes(currencyCode)) || kwConfig.eu_uk.some(w => kwKey.includes(w)));
 
         const rawCat = document.getElementById('category').value;
         const ctx = {
-            db: db, curr: isForeign ? 'FOREIGN' : 'TWD', cat: rawCat, group: mapCategoryGroup(rawCat),
+            db: db, curr: isForeign ? 'FOREIGN' : 'TWD', currencyCode: currencyCode, cat: rawCat, group: mapCategoryGroup(rawCat),
             pay: payMethod, kwKey: kwKey,
             isBirthday: document.getElementById('birthdayMode').checked, isFlyMode: document.getElementById('flyMode').checked,
             isForeign: isForeign, isEUR: isEUPhysical, twdBase: twdBase, twdSpend: twdSpend, isLiveSelect: false
@@ -1915,7 +1992,6 @@
         asset.current = (Number(asset.current) || 0) + qty; saveDB(db); 
         clearInput('raw-point-name'); clearInput('raw-point-current'); renderWarehouse(); showCustomAlert('✅ 通用積分存入成功！');
     }
-
     function addTransferAsset() {
         const name = document.getElementById('trans-source-name').value.trim(); 
         const rawQty = Number(document.getElementById('trans-current').value);
@@ -2165,16 +2241,25 @@
         // --- Global Mode 洗滌 ---
         if (res.asset_strategy_review) {
             const asr = safeObject(res.asset_strategy_review);
+            let pUse = safeArray(asr.priority_use).map(i => {
+                const si = safeObject(i);
+                return { asset_name: String(si.asset_name || ''), reason: String(si.reason || '') };
+            });
+            let kReserve = safeArray(asr.keep_in_reserve).map(i => {
+                const si = safeObject(i);
+                return { asset_name: String(si.asset_name || ''), reason: String(si.reason || '') };
+            });
+
+            if (pUse.length > 1) {
+                const overflow = pUse.slice(1);
+                pUse = [pUse[0]];
+                kReserve = kReserve.concat(overflow);
+            }
+
             cleaned.asset_strategy_review = {
                 overall_status: String(asr.overall_status || ''),
-                priority_use: safeArray(asr.priority_use).map(i => {
-                    const si = safeObject(i);
-                    return { asset_name: String(si.asset_name || ''), reason: String(si.reason || '') };
-                }),
-                keep_in_reserve: safeArray(asr.keep_in_reserve).map(i => {
-                    const si = safeObject(i);
-                    return { asset_name: String(si.asset_name || ''), reason: String(si.reason || '') };
-                }),
+                priority_use: pUse,
+                keep_in_reserve: kReserve,
                 do_not_use_yet: safeArray(asr.do_not_use_yet).map(i => {
                     const si = safeObject(i);
                     return { asset_name: String(si.asset_name || ''), reason: String(si.reason || '') };
@@ -2214,17 +2299,15 @@
                 shortfall: safeNum(fs.shortfall)
             };
         }
-        
-        if (res.three_distinct_strategies) {
-            cleaned.three_distinct_strategies = safeArray(res.three_distinct_strategies).map(s => {
-                const ss = safeObject(s);
-                return {
-                    strategy_type: String(ss.strategy_type || ''),
-                    differentiation_tags: safeArray(ss.differentiation_tags).map(t => String(t || '')),
-                    route_details: String(ss.route_details || ''),
-                    est_miles_cost: safeNum(ss.est_miles_cost),
-                    est_tax_range: String(ss.est_tax_range || ''),
-                    pros_cons: safeArray(ss.pros_cons).map(p => String(p || ''))
+
+        if (res.four_core_strategies) {
+            const fcs = safeObject(res.four_core_strategies);
+            cleaned.four_core_strategies = {};
+            ['direct_flight', 'low_tax', 'alliance_sweetspot', 'open_jaw_backup'].forEach(key => {
+                const item = safeObject(fcs[key]);
+                cleaned.four_core_strategies[key] = {
+                    route_details: String(item.route_details || ''),
+                    pros_cons: String(item.pros_cons || '')
                 };
             });
         }
@@ -2328,13 +2411,59 @@
                 userTarget = { base_location: baseLocation };
             }
 
-            // 掛接 B: 依據 userTarget 資訊過濾無效聯盟的補血卡
+            // 掛接 B: 依據 userTarget 資訊與 Alias 正規化白名單過濾無效補血卡
+            const mainTargetEl = document.getElementById('redemption-target');
+            const targetVal = mainTargetEl ? mainTargetEl.value : 'ALL'; // 僅會有 'ALL', 'AM_BR', 'CI'
+
+            // 實作航司 Alias 正規化 Helper
+            const normalizeAirline = (name) => {
+                if (!name || typeof name !== 'string') return 'UNKNOWN';
+                const n = name.toUpperCase();
+                if (n.includes('華航') || n.includes('中華航空') || n === 'CI') return 'CI';
+                if (n.includes('長榮') || n.includes('長榮航空') || n === 'BR') return 'BR';
+                if (n.includes('國泰') || n.includes('亞萬') || n.includes('亞洲萬里通') || n === 'CX' || n === 'AM') return 'CX';
+                if (n.includes('新航') || n.includes('新加坡航空') || n === 'SQ') return 'SQ';
+                if (n.includes('日航') || n.includes('日本航空') || n.includes('JAL')) return 'JL';
+                if (n.includes('全日空') || n.includes('ANA')) return 'NH';
+                if (n.includes('聯合航空') || n.includes('UA')) return 'UA';
+                return 'UNKNOWN';
+            };
+
             let topupCandidates = baseTopupCandidates;
-            if (typeof resolveTargetEcosystem === 'function' && typeof checkTopupEligibility === 'function') {
-                const mainTargetEl = document.getElementById('redemption-target');
-                const mainTargetVal = mainTargetEl ? mainTargetEl.value : 'ALL';
-                const targetEco = resolveTargetEcosystem(mode, mainTargetVal, userTarget);
-                topupCandidates = baseTopupCandidates.filter(c => checkTopupEligibility(c.cardName, targetEco));
+            if (targetVal !== 'ALL') {
+                const tPartnersConfig = getTransferPartnersConfig();
+
+                topupCandidates = baseTopupCandidates.filter(c => {
+                    const cardName = c.cardName || '';
+
+                    // 1. 判定該卡是否屬於通用積分池
+                    let poolName = null;
+                    if (cardName.includes('Live+')) poolName = '匯豐Live+積分';
+                    else if (cardName.includes('旅人')) poolName = '匯豐 旅人積分';
+
+                    // 2. 若為專屬聯名卡，直接透過名稱判斷生態系
+                    if (!poolName) {
+                        const cardNorm = normalizeAirline(cardName);
+                        if (targetVal === 'CI') return cardNorm === 'CI';
+                        if (targetVal === 'AM_BR') return cardNorm === 'CX' || cardNorm === 'BR';
+                        return true;
+                    }
+
+                    // 3. 若為通用積分池，則檢查 rules.json 的 supported_partners
+                    const poolConfig = tPartnersConfig[poolName];
+                    if (poolConfig && Array.isArray(poolConfig.supported_partners)) {
+                        const supportedNorms = poolConfig.supported_partners.map(p => normalizeAirline(p));
+
+                        if (targetVal === 'CI') {
+                            return supportedNorms.includes('CI');
+                        }
+                        if (targetVal === 'AM_BR') {
+                            return supportedNorms.includes('CX') || supportedNorms.includes('BR');
+                        }
+                    }
+
+                    return false;
+                });
             }
 
             const { costChampion, speedChampion } = calculateBestTopup(topupCandidates);
@@ -2369,9 +2498,12 @@
   "feasibility": {
     "is_achievable": true, "target_est_miles": 0, "current_effective_miles": 0, "shortfall": 0
   },
-  "three_distinct_strategies": [
-    {"strategy_type": "直飛基準 | 聯盟高CP | 外站開口", "differentiation_tags": ["String"], "route_details": "String", "est_miles_cost": 0, "est_tax_range": "String", "pros_cons": ["String"]}
-  ],
+  "four_core_strategies": {
+    "direct_flight": {"route_details": "String", "pros_cons": "String"},
+    "low_tax": {"route_details": "String", "pros_cons": "String"},
+    "alliance_sweetspot": {"route_details": "String", "pros_cons": "String"},
+    "open_jaw_backup": {"route_details": "String", "pros_cons": "String"}
+  },
   "topup_recommendations": [
     {"topup_type": "最省成本方案 | 最快達成方案", "recommended_card": "String (嚴格對應 JS 算好的冠軍卡)", "trigger_scenario": "String", "math_formula": "String (缺口X哩 * Y元/哩 = Z元)", "required_spend_twd": 0}
   ],
@@ -2388,7 +2520,7 @@
 
             const engineLogic = mode === 'global'
                 ? `作為資深哩程玩家，評估資產組合並推薦 3 個最高 CPP 甜蜜點目的地。推薦的航線必須以 base_location（${baseLocation}）為出發點。若是利用外站（如香港/新加坡出發）的亮點，必須在 is_positioning_required 標示 true，並於 positioning_strategy 明確評估從 ${baseLocation} 過去的銜接難度與成本。`
-                : `針對目標航線，提供 3 套具備實質差異的策略(直飛/聯盟套利/外站)。精算差額，並嚴格使用 JS 算好的冠軍卡推算補血算式。`;
+                : `針對目標航線，提供 4 套具備實質差異的策略 (直飛/低稅金/聯盟套利/外站)。精算差額，並嚴格使用 JS 算好的冠軍卡推算補血算式。`;
 
             const systemPrompt = `[角色任務]: 你是一名深耕 ${currentYear} 年航空哩程領域的頂尖戰略顧問，負責分析使用者的真實資產並給出具備數學依據的決策報告。
 [鐵律]:
@@ -2510,19 +2642,24 @@ ${mode === 'global' ? globalSchema : specificSchema}`;
                         </div>
                     </div>
 
-                    <h6 class="fw-bold tdc-mb-3 px-1 mt-4" style="color:#2563eb;"><svg class="lucide me-1"><use href="#icon-map"/></svg>差異化執行劇本比較</h6>
+                    <h6 class="fw-bold tdc-mb-3 px-1 mt-4" style="color:#2563eb;"><svg class="lucide me-1"><use href="#icon-map"/></svg>四核心戰略解析</h6>
                     <div class="mb-4">
-                        ${(res.three_distinct_strategies || []).map(s => `
+                        ${['direct_flight', 'low_tax', 'alliance_sweetspot', 'open_jaw_backup'].map(key => {
+                            const strat = (res.four_core_strategies || {})[key];
+                            if (!strat) return '';
+                            let title = ''; let icon = '';
+                            if(key==='direct_flight') { title='第一優先：兩點一線直飛'; icon='✈️'; }
+                            else if(key==='low_tax') { title='第二優先：低稅金航線'; icon='💰'; }
+                            else if(key==='alliance_sweetspot') { title='第三優先：同聯盟高CP'; icon='🤝'; }
+                            else if(key==='open_jaw_backup') { title='第四優先：開口備選'; icon='🗺️'; }
+
+                            return `
                             <div class="card-box p-3 tdc-mb-3 border-0 shadow-sm" style="background:#ffffff; border: 1px solid #e2e8f0; border-radius:16px;">
-                                <div class="fw-bold fs-6 tdc-mb-2 text-primary-dark">${formatMD(s.strategy_type)}</div>
-                                <div class="tdc-mb-2">${(s.differentiation_tags || []).map(t => `<span class="ai-tag tag-miles bg-light text-secondary border-secondary">${formatMD(t)}</span>`).join('')}</div>
-                                <div class="small text-dark fw-bold tdc-mb-2 pb-2 border-bottom">${formatMD(s.route_details)}</div>
-                                <div class="tdc-flex tdc-justify-between small text-muted tdc-mb-2 fw-bold"><span>消耗: ${Number(s.est_miles_cost).toLocaleString()}</span><span>稅金: ${formatMD(s.est_tax_range)}</span></div>
-                                <ul class="small text-secondary m-0 ps-3" style="line-height:1.6;">
-                                    ${(s.pros_cons || []).map(pc => `<li>${formatMD(pc)}</li>`).join('')}
-                                </ul>
-                            </div>
-                        `).join('')}
+                                <div class="fw-bold fs-6 tdc-mb-2 text-primary-dark">${icon} ${title}</div>
+                                <div class="small text-dark fw-bold tdc-mb-2 pb-2 border-bottom">${formatMD(strat.route_details)}</div>
+                                <div class="small text-secondary m-0" style="line-height:1.6;">${formatMD(strat.pros_cons)}</div>
+                            </div>`;
+                        }).join('')}
                     </div>
 
                     ${(!fs.is_achievable && Number(fs.shortfall) > 0) ? `
