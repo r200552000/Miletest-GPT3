@@ -2,15 +2,15 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>TDC環哩匯X航空消費累哩工具（AI版） V15.1</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>TDC環哩匯X航空消費累哩工具（AI版） V15.2</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Varela+Round&family=Mali:wght@500;700&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
   <style>
     /* =========================
-       排版防禦系統 & 基礎變數 (v15.1 終極防禦版)
+       排版防禦系統 & 基礎變數 (v15.2 體感升級版)
        ========================= */
     .tdc-row { display: flex; flex-wrap: wrap; margin-left: -5px; margin-right: -5px; }
     .tdc-col-5 { width: 41.666%; padding-left: 5px; padding-right: 5px; box-sizing: border-box; }
@@ -60,7 +60,7 @@
     .modal-backdrop { z-index: 1040 !important; }
     body.confirm-modal-open .modal-backdrop:last-child { z-index: 2050 !important; }
 
-    /* v15.1 通用版面與元件 */
+    /* v15.2 通用版面與元件 */
     .header { background: #ffffff; padding: 15px 20px 25px 20px; border-bottom-left-radius: 36px; border-bottom-right-radius: 36px; position: sticky; top: 0; box-shadow: var(--shadow-draw); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; height: 90px; border-bottom: 3px dashed #bae6fd; z-index: 100; box-sizing: border-box; }
     .header-icon { width: 40px; height: 40px; background: #eff6ff; border: 2px solid #bfdbfe; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.1rem; transform: rotate(-5deg); margin-right: 10px; flex-shrink: 0; }
     
@@ -163,6 +163,13 @@
     
     .custom-card-item { background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 14px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
     .footer-disclaimer { background-color: #1a1a1a; color: #e5e5e5; padding: 24px 20px 120px 20px; font-size: 15px; line-height: 1.6; text-align: justify; flex-shrink: 0; width: 100%; box-sizing: border-box; font-family: var(--font-main); font-weight: 500; }
+    
+    /* A+ 大字模式 */
+    .ai-text-large { font-size: 1.15rem !important; line-height: 1.8 !important; }
+    .ai-text-large .small { font-size: 1rem !important; }
+    .ai-text-large .fs-6 { font-size: 1.25rem !important; }
+    .ai-text-large .card-box { padding: 24px !important; }
+    .ai-text-large .ai-tag { font-size: 0.9rem !important; padding: 4px 10px !important; }
   </style>
 </head>
 <body>
@@ -170,7 +177,7 @@
     <symbol id="icon-plane" viewBox="0 0 24 24"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-.5-.5-2.5 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.2-1.1.6L3 8l6 4-3 3-3-1-2 2 4 4 2-2-1-3 3-3 4 6 1.2-.7c.4-.2.7-.6.6-1.1z"/></symbol>
     <symbol id="icon-book" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></symbol>
     <symbol id="icon-gear" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1-1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
-    <symbol id="icon-cake" viewBox="0 0 24 24"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5-2 4-2 2.5-2 4-2 2.5-2 4-2 2.5-2 4-2 2.5-2 4-2 2.5-2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M7 8v3"/><path d="M12 8v3"/><path d="M17 8v3"/><path d="M7 4h.01"/><path d="M12 4h.01"/><path d="M17 4h.01"/></symbol>
+    <symbol id="icon-cake" viewBox="0 0 24 24"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5-2 4-2 2.5-2 4-2 2.5-2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M7 8v3"/><path d="M12 8v3"/><path d="M17 8v3"/><path d="M7 4h.01"/><path d="M12 4h.01"/><path d="M17 4h.01"/></symbol>
     <symbol id="icon-ticket" viewBox="0 0 24 24"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></symbol>
     <symbol id="icon-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
     <symbol id="icon-calc" viewBox="0 0 24 24"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/></symbol>
@@ -190,6 +197,7 @@
     <symbol id="icon-sparkle" viewBox="0 0 24 24"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" fill="currentColor" stroke="none"/></symbol>
     <symbol id="icon-external" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></symbol>
     <symbol id="icon-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></symbol>
+    <symbol id="icon-type" viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/></symbol>
   </svg>
   <div class="header">
     <div class="tdc-flex tdc-align-center tdc-w-100">
@@ -198,7 +206,7 @@
         <div id="sync-indicator" class="sync-dot sync-green me-2" title="點擊強制對齊最新規章" onclick="triggerSync()"></div>
         <div style="min-width: 0;">
             <h5>TDC環哩匯X航空消費累哩工具（AI版）</h5>
-            <small class="text-secondary fw-bold">V15.1 終極防禦版<span id="hsbc-adapter-status" class="badge bg-warning text-dark ms-2" style="font-size: 0.6rem; transform: translateY(-2px); display: inline-block;">Rules: Standby</span></small>
+            <small class="text-secondary fw-bold">V15.2 體感升級版<span id="hsbc-adapter-status" class="badge bg-warning text-dark ms-2" style="font-size: 0.6rem; transform: translateY(-2px); display: inline-block;">Rules: Standby</span></small>
         </div>
       </div>
       <div class="header-btn-group">
@@ -261,7 +269,7 @@
             <div class="tdc-row tdc-mb-2">
                 <div class="tdc-col-5">
                     <div class="input-wrapper">
-                        <input type="text" id="fx-currency-code" class="form-control text-center fw-bold" placeholder="如: JPY" maxlength="3" oninput="this.value = this.value.toUpperCase(); updateCurrencyLabel();">
+                        <input type="text" id="fx-currency-code" class="form-control text-center fw-bold" placeholder="如: 日本/JPY" oninput="handleCurrencyInput(this.value)">
                     </div>
                 </div>
                 <div class="tdc-col-7">
@@ -270,6 +278,7 @@
                     </button>
                 </div>
             </div>
+            <div id="fx-currency-hint" class="small fw-bold text-success tdc-mb-2" style="display:none;"></div>
             <div class="tdc-flex tdc-align-center gap-2 tdc-mb-1 mt-2">
                 <span class="fw-bold text-secondary" style="white-space: nowrap;">1 外幣 =</span>
                 <div class="input-wrapper tdc-grow-1">
@@ -283,6 +292,7 @@
                 <span id="fx-manual-warning" class="text-warning ms-2" style="display:none;">(✏️ 已手動覆寫匯率)</span>
             </div>
         </div>
+
         <div class="tdc-mb-3 mt-3">
           <label class="form-label" id="amount-label">🇹🇼 消費金額 (TWD)</label>
           <div class="input-wrapper">
@@ -388,7 +398,6 @@
             
             <div id="warehouse-list"></div>
         </div>
-
         <div id="warehouse-view-planner">
             <div class="tdc-flex gap-2 tdc-mb-3">
                 <button class="ai-btn-purple tdc-grow-1 tdc-flex flex-column tdc-align-center tdc-justify-center" onclick="startAIDiagnosis('global')">
@@ -592,10 +601,13 @@
 
   <div class="modal fade" id="aiReportModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-      <div class="modal-content p-3 border-0" style="background: #f8fafc;">
+      <div class="modal-content p-3 border-0" style="background: #f8fafc;" id="ai-modal-content-wrap">
         <div class="tdc-flex tdc-justify-between tdc-align-center tdc-mb-3">
           <h5 class="fw-bold tdc-m-0 tdc-flex tdc-align-center" id="ai-modal-title" style="color: #6d28d9;"><svg class="me-2" style="width:20px;height:20px;"><use href="#icon-sparkle"/></svg>系統診斷回報</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          <div class="tdc-flex tdc-align-center gap-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle p-1" onclick="toggleAITextSize()" title="切換字體大小"><svg class="lucide" style="width:16px;height:16px;"><use href="#icon-type"/></svg></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
         </div>
         <div class="modal-body p-0" id="ai-report-content">
           </div>
@@ -645,7 +657,7 @@
 
   <script>
     /* ==========================================
-       TDC 航空累哩工具 v15.1 終極防禦版 - 核心 JS 運算引擎
+       TDC 航空累哩工具 v15.2 體感升級版 - 核心 JS 運算引擎
        ========================================== */
     const DB_KEY = 'MILES_APP_V15_1'; 
     let currentResults = [];
@@ -659,8 +671,8 @@
 
     // [維護者註解] 這是最底層的安全網，當網路斷線且無快取時，系統會依賴此物件來維持基本運作，避免白屏。
     const DEFAULT_RULES = {
-        version: "v15.1.0",
-        last_updated: "2026-03-11",
+        version: "v15.2.0",
+        last_updated: "2026-03-14",
         ui_categories: [
             { id: "general", label: "🛍️ 一般消費" },
             { id: "dining_general", label: "🍽️ 一般餐廳" },
@@ -1017,8 +1029,54 @@
     }
     let lastFetchedRate = null;
 
-    function updateCurrencyLabel() {
-        const code = document.getElementById('fx-currency-code').value.trim().toUpperCase();
+    // --- 匯率國家辨識 Helper ---
+    function detectCurrencyCode(input) {
+        if (!input || typeof input !== 'string') return null;
+        const str = input.trim().toLowerCase();
+        if (str === '') return null;
+
+        const map = {
+            '日本': 'JPY', '日圓': 'JPY', '日幣': 'JPY', 'jpy': 'JPY',
+            '新加坡': 'SGD', '新幣': 'SGD', 'sgd': 'SGD',
+            '香港': 'HKD', '港幣': 'HKD', 'hkd': 'HKD',
+            '韓國': 'KRW', '南韓': 'KRW', '韓幣': 'KRW', '韓元': 'KRW', 'krw': 'KRW',
+            '泰國': 'THB', '泰銖': 'THB', 'thb': 'THB',
+            '美國': 'USD', '美金': 'USD', 'usd': 'USD',
+            '英國': 'GBP', '英鎊': 'GBP', 'gbp': 'GBP',
+            '歐洲': 'EUR', '歐元': 'EUR', 'eur': 'EUR', '法國': 'EUR', '德國': 'EUR', '義大利': 'EUR', '西班牙': 'EUR',
+            '中國': 'CNY', '人民幣': 'CNY', 'cny': 'CNY', 'rmb': 'CNY',
+            '馬來西亞': 'MYR', '馬幣': 'MYR', 'myr': 'MYR',
+            '越南': 'VND', '越盾': 'VND', 'vnd': 'VND',
+            '菲律賓': 'PHP', '披索': 'PHP', 'php': 'PHP',
+            '印度': 'INR', '盧比': 'INR', 'inr': 'INR',
+            '斯里蘭卡': 'LKR', 'lkr': 'LKR'
+        };
+
+        if (map[str]) return map[str];
+        if (str.length === 3 && /^[a-z]{3}$/.test(str)) return str.toUpperCase();
+        return null;
+    }
+
+    function handleCurrencyInput(val) {
+        const detected = detectCurrencyCode(val);
+        const hintEl = document.getElementById('fx-currency-hint');
+        if (detected) {
+            hintEl.innerText = `✅ 已辨識幣別：${detected}`;
+            hintEl.style.display = 'block';
+            updateCurrencyLabel(detected);
+        } else {
+            hintEl.style.display = 'none';
+            updateCurrencyLabel(val);
+        }
+    }
+
+    function updateCurrencyLabel(codeParam) {
+        let code = codeParam;
+        if (!code) {
+            const rawVal = document.getElementById('fx-currency-code').value;
+            code = detectCurrencyCode(rawVal) || rawVal.trim().toUpperCase();
+        }
+        
         if (code) localStorage.setItem('LAST_FX_CODE', code);
         const currType = document.getElementById('currency-type').value;
         if (currType === 'FOREIGN') {
@@ -1032,8 +1090,10 @@
             const savedCode = localStorage.getItem('LAST_FX_CODE') || '';
             if (savedCode && !document.getElementById('fx-currency-code').value) {
                 document.getElementById('fx-currency-code').value = savedCode;
+                handleCurrencyInput(savedCode);
+            } else {
+                updateCurrencyLabel();
             }
-            updateCurrencyLabel();
         } else {
             document.getElementById('amount-label').innerHTML = '🇹🇼 消費金額 (TWD)';
         }
@@ -1062,9 +1122,11 @@
     }
 
     async function autoFetchFxRate() {
-        const codeInput = document.getElementById('fx-currency-code').value.trim().toUpperCase();
+        const rawInput = document.getElementById('fx-currency-code').value;
+        const codeInput = detectCurrencyCode(rawInput) || rawInput.trim().toUpperCase();
         const btn = document.getElementById('btn-fetch-fx');
-        if (!codeInput || codeInput.length !== 3) return showCustomAlert('請先輸入 3 碼外幣代碼 (例如：JPY、USD)');
+        
+        if (!codeInput || codeInput.length !== 3) return showCustomAlert('請先輸入國家或 3 碼外幣代碼 (如：日本、JPY)');
         if (codeInput === 'TWD') return showCustomAlert('台幣不需要抓取匯率！');
 
         const originalText = btn.innerHTML;
@@ -1105,6 +1167,13 @@
         else input.placeholder = '輸入店家關鍵字 (如: 麥當勞, Agoda, JPY, 日本)...';
     }
     function goToSettingsFromAI() { bootstrap.Modal.getInstance(document.getElementById('aiIntroModal')).hide(); setTimeout(openSettings, 400); }
+
+    function toggleAITextSize() {
+        const wrap = document.getElementById('ai-modal-content-wrap');
+        if (wrap) {
+            wrap.classList.toggle('ai-text-large');
+        }
+    }
 
     async function triggerSync() {
         const ind = document.getElementById('sync-indicator');
@@ -1686,6 +1755,17 @@
             </div>`;
             con.appendChild(div);
         });
+
+        const linkDiv = document.createElement('div');
+        linkDiv.className = 'link-row mt-3 tdc-mb-3';
+        linkDiv.innerHTML = `
+            <a href="https://www.evaair.com/" target="_blank" class="btn-airline-link">長榮</a>
+            <a href="https://www.china-airlines.com/" target="_blank" class="btn-airline-link">華航</a>
+            <a href="https://www.cathaypacific.com/" target="_blank" class="btn-airline-link">國泰</a>
+            <a href="https://www.ana.co.jp/" target="_blank" class="btn-airline-link">ANA</a>
+            <a href="https://www.ana.co.jp/zh-tw/amc/reference/tux/staralliance/" target="_blank" class="btn-airline-link">ANA 換星盟</a>
+        `;
+        con.appendChild(linkDiv);
     }
 
     function recordTx(idx, isManual = false, originalMiles = 0) {
@@ -1992,6 +2072,7 @@
         asset.current = (Number(asset.current) || 0) + qty; saveDB(db); 
         clearInput('raw-point-name'); clearInput('raw-point-current'); renderWarehouse(); showCustomAlert('✅ 通用積分存入成功！');
     }
+
     function addTransferAsset() {
         const name = document.getElementById('trans-source-name').value.trim(); 
         const rawQty = Number(document.getElementById('trans-current').value);
